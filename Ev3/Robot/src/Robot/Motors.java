@@ -1,13 +1,8 @@
 package Robot;
 
 import lejos.hardware.motor.Motor;
-import lejos.hardware.port.SensorPort;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.hardware.sensor.I2CSensor;
 import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
-import lejos.utility.Delay;
 
 public class Motors {
 	public static final float diametro = 5.6f;
@@ -17,36 +12,37 @@ public class Motors {
 	public static final float coeffCm = 360 / ((float) Math.PI * diametro);
 	public static final float coeffSpin = asse / diametro;
 	public static final float aD = asse + diffAsse;
-	public static final float coeffCorrRuote = 1f; //da calcolare
+	public static final float coeffCorrRuote = 1f; // da calcolare
 	// se i motori sono nel verso giusto
 	// public static RegulatedMotor MB=Motor.B;
 	// public static RegulatedMotor MC=Motor.C;
+	// public static RegulatedMotor MC=Motor.A;
 	// altrimenti
 	public static RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	public static RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
-	
-	
-    public static void drive(float l, float r) {
-        // B-> to left C-> to right
+	public static RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
 
-        MB.setSpeed((int) Math.abs(l));
-        MC.setSpeed((int) Math.abs(r));
-        if ( l > 0 ) {
-            MB.forward();
-        } else if ( l < 0 ) {
-            MB.backward();
-        } else {
-            MB.stop(true);
-        }
-        if ( r > 0 ) {
-            MC.forward();
-        } else if ( r < 0 ) {
-            MC.backward();
-        } else {
-            MC.stop(true);
-        }
-    }
-    
+	public static void drive(float l, float r) {
+		// B-> to left C-> to right
+
+		MB.setSpeed((int) Math.abs(l));
+		MC.setSpeed((int) Math.abs(r));
+		if (l > 0) {
+			MB.forward();
+		} else if (l < 0) {
+			MB.backward();
+		} else {
+			MB.stop(true);
+		}
+		if (r > 0) {
+			MC.forward();
+		} else if (r < 0) {
+			MC.backward();
+		} else {
+			MC.stop(true);
+		}
+	}
+
 	public static void travel(int vel, float dist, boolean no_wait) { // va dritto alla vel. e per una certa distanza
 																		// (in cm)
 		MB.resetTachoCount();
@@ -134,6 +130,16 @@ public class Motors {
 
 	public static void arc(int vest, float raggio, float arc) {
 		arc(vest, raggio, arc, false);
+	}
+
+	public static void alzaPinza() {
+		// metodo per aòzare la pinza
+
+	}
+
+	public static void abbassaPinza() {
+		// metodo per abbasare la pinza
+
 	}
 
 	public static boolean isMoving() {
