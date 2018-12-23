@@ -1,4 +1,4 @@
-#include <Wire.h>
+#include <SoftwareWire.h>
 #include <Adafruit_TCS34725.h>
 
 #define TCAADDR 0x70

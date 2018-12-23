@@ -3,8 +3,8 @@
 Sensors::Sensors() {
 	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_1X);
 	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_1X);
-	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_1X);	
-	Wire.begin();
+	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_1X);
+	Wire1.begin();
 }
 char Sensors::getColorLeft() {
 	tcaSelect(CSLAddr);
@@ -23,9 +23,9 @@ char Sensors::getColorCenter() {
 }
 
 void Sensors::tcaSelect(uint8_t addr) {
-  Wire.beginTransmission(TCAADDR);
-  Wire.write(1 << addr);
-  Wire.endTransmission();
+  Wire1.beginTransmission(TCAADDR);
+  Wire1.write(1 << addr);
+  Wire1.endTransmission();
 }
 
 char Sensors::getColorID(int colors[]) {
@@ -54,24 +54,24 @@ char Sensors::getColorID(int colors[]) {
 	// se i valori sono compresi nel cuboide di uno dei colori ....
 	if (colors[RED]>=Red_min[RED] && colors[RED]<Red_max[RED] &&
 	colors[GREEN]>=Red_min[GREEN] && colors[GREEN]<Red_max[GREEN] &&
-	colors[BLUE]>=Red_min[BLUE] && colors[BLUE]<Red_max[BLUE]) 
-		return COL_RED; 
+	colors[BLUE]>=Red_min[BLUE] && colors[BLUE]<Red_max[BLUE])
+		return COL_RED;
 	else if (colors[RED]>=White_min[RED] && colors[RED]<White_max[RED] &&
 	colors[GREEN]>=White_min[GREEN] && colors[GREEN]<White_max[GREEN] &&
-	colors[BLUE]>=White_min[BLUE] && colors[BLUE]<White_max[BLUE]) 
-		return COL_WHITE;   
+	colors[BLUE]>=White_min[BLUE] && colors[BLUE]<White_max[BLUE])
+		return COL_WHITE;
 	else if (colors[RED]>=Green_min[RED] && colors[RED]<Green_max[RED] &&
 	colors[GREEN]>=Green_min[GREEN] && colors[GREEN]<Green_max[GREEN] &&
-	colors[BLUE]>=Green_min[BLUE] && colors[BLUE]<Green_max[BLUE]) 
-		return COL_GREEN; 
+	colors[BLUE]>=Green_min[BLUE] && colors[BLUE]<Green_max[BLUE])
+		return COL_GREEN;
 	else if (colors[RED]>=Black_min[RED] && colors[RED]<Black_max[RED] &&
 	colors[GREEN]>=Black_min[GREEN] && colors[GREEN]<Black_max[GREEN] &&
-	colors[BLUE]>=Black_min[BLUE] && colors[BLUE]<Black_max[BLUE]) 
-		return COL_BLACK; 
+	colors[BLUE]>=Black_min[BLUE] && colors[BLUE]<Black_max[BLUE])
+		return COL_BLACK;
 	else if (colors[RED]>=Silver_min[RED] && colors[RED]<Silver_max[RED] &&
 	colors[GREEN]>=Silver_min[GREEN] && colors[GREEN]<Silver_max[GREEN] &&
-	colors[BLUE]>=Silver_min[BLUE] && colors[BLUE]<Silver_max[BLUE]) 
-		return COL_SILVER; 
+	colors[BLUE]>=Silver_min[BLUE] && colors[BLUE]<Silver_max[BLUE])
+		return COL_SILVER;
 	else
 		return COL_UNKNOWN; */
 }
