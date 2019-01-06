@@ -12,15 +12,16 @@ public class Motors {
 	public static final float coeffCm = 360 / ((float) Math.PI * diametro);
 	public static final float coeffSpin = asse / diametro;
 	public static final float aD = asse + diffAsse;
-	public static final float coeffCorrRuote = 1f; // da calcolare
+	public static final float coeffCorrRuote = 0.7f; // da calcolare
 	// se i motori sono nel verso giusto
-	// public static RegulatedMotor MB=Motor.B;
-	// public static RegulatedMotor MC=Motor.C;
-	// public static RegulatedMotor MC=Motor.A;
+	public static RegulatedMotor MB = Motor.B;
+	public static RegulatedMotor MC = Motor.C;
+	// public static RegulatedMotor MA=Motor.A;
 	// altrimenti
-	public static RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
-	public static RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
+	// public static RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
+	// public static RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
 	public static RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
+	//public static float sensorData;
 
 	public static void drive(float l, float r) {
 		// B-> to left C-> to right
