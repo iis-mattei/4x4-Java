@@ -11,7 +11,7 @@ public class Sensors {
 	private char colL, colC, colR;
 	private boolean AntDx, AntSx, PostDx, PostSx;
 	private boolean Argento;
-	//private int dist;
+	// private int dist;
 
 	public char colR() {
 		arduino.getData('R', buffReadResponse, buffReadResponse.length);
@@ -33,46 +33,46 @@ public class Sensors {
 
 	public char[] colA() {
 		arduino.getData('H', buffReadResponse, buffReadResponse.length);
-		for(int i=0; i<3; i++) {
-	 		colA[i] = (char) buffReadResponse[i];
+		for (int i = 0; i < 3; i++) {
+			colA[i] = (char) buffReadResponse[i];
 		}
-	 return colA;
+		return colA;
 	}
 
 	public boolean AntDx() {
 		arduino.getData('X', buffReadResponse, buffReadResponse.length);
-		AntDx = buffReadResponse[0]!=0;
+		AntDx = buffReadResponse[0] != 0;
 		return AntDx;
 	}
 
 	public boolean AntSx() {
 		arduino.getData('Y', buffReadResponse, buffReadResponse.length);
-		AntSx = buffReadResponse[0]!=0;
+		AntSx = buffReadResponse[0] != 0;
 		return AntSx;
 	}
 
 	public boolean PostDx() {
 		arduino.getData('K', buffReadResponse, buffReadResponse.length);
-		PostDx = buffReadResponse[0]!=0;
+		PostDx = buffReadResponse[0] != 0;
 		return PostDx;
 	}
 
 	public boolean PostSx() {
 		arduino.getData('Z', buffReadResponse, buffReadResponse.length);
-		PostSx = buffReadResponse[0]!=0;
+		PostSx = buffReadResponse[0] != 0;
 		return PostSx;
 	}
 
-	public boolean Argento(){
+	public boolean Argento() {
 		arduino.getData('A', buffReadResponse, buffReadResponse.length);
-		Argento = buffReadResponse[0]!=0;
+		Argento = buffReadResponse[0] != 0;
 		return Argento;
 	}
 
 	// public int U_Ant_I(){
-	// 	arduino.getData('C', buffReadResponse, buffReadResponse.length);
-	// 	dist = (int) buffReadResponse[0];
-	// 	return dist;
+	// arduino.getData('C', buffReadResponse, buffReadResponse.length);
+	// dist = (int) buffReadResponse[0];
+	// return dist;
 	// }
 
 }

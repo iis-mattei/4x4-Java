@@ -21,7 +21,7 @@ public class Motors {
 	// public static RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	// public static RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
 	public static RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
-	//public static float sensorData;
+	// public static float sensorData;
 
 	public static void drive(float l, float r) {
 		// B-> to left C-> to right
