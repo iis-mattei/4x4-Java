@@ -15,6 +15,8 @@ Sensors *sensors;
 byte request;
 int L_Argento;
 char colL, colR, colC;
+int Delta;
+int luxL, luxR;
 //long dist;
 //  Trigger_U_Ant_S= , Trigger_U_Post= , Trigger_U_Dx= , Trigger_U_Sx= ;
 //  Echo_U_Ant_S= , Echo_U_Post= , Echo_U_Dx= , Echo_U_Sx= ;
@@ -39,11 +41,12 @@ void setup() {
 }
 
 void loop() {
-
   colL = sensors->getColorLeft();
   colC = sensors->getColorCenter();
   colR = sensors->getColorRight();
-  L_Argento=digitalRead(Argento);
+  L_Argento=digitalRead(Argento);  
+  luxR=sensors->getLuxRight();
+  luxL=sensors->getLuxLeft();
 }
 
 void receiveData(int byteCount) {
@@ -120,6 +123,16 @@ void sendData(){
     } else {
       Wire.write(false);
     }
+  }
+
+
+  if(request=='S'){
+
+    Wire.write(luxL);
+  }
+
+  if(request=='D'){
+    Wire.write(luxR);
   }
 
   // if(request=='C'){

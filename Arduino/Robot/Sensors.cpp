@@ -21,6 +21,28 @@ char Sensors::getColorCenter() {
 	delay(10);
 	return this->ReadColorSensor(colorSensorC);
 }
+int Sensors::getLuxLeft() {
+	uint16_t clear, red, green, blue;
+	int lux;
+
+	tcaSelect(CSLAddr);
+	delay(10);
+	colorSensorL.getRawData(&red, &green, &blue, &clear);
+	lux = (int)colorSensorL.calculateLux(red, green, blue);
+
+	return lux;
+}
+int Sensors::getLuxRight() {
+	uint16_t clear, red, green, blue;
+	int lux;
+
+	tcaSelect(CSRAddr);
+	delay(10);
+	colorSensorR.getRawData(&red, &green, &blue, &clear);
+	lux = (int)colorSensorR.calculateLux(red, green, blue);
+
+	return lux;
+}
 
 void Sensors::tcaSelect(uint8_t addr) {
   Wire1.beginTransmission(TCAADDR);

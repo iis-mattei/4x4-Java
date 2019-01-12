@@ -14,6 +14,8 @@ class Sensors {
 		char getColorRight();
 		char getColorLeft();
 		char getColorCenter();
+		int getLuxLeft();
+		int getLuxRight();
 	private :
 		Adafruit_TCS34725 colorSensorL, colorSensorR, colorSensorC;
 		void tcaSelect(uint8_t addr);

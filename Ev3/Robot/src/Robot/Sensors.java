@@ -7,7 +7,7 @@ public class Sensors {
 	private int I2CSlaveAddress = 8;
 	private I2CSensor arduino = new I2CSensor(SensorPort.S1, I2CSlaveAddress);
 	private byte[] buffReadResponse = new byte[3];
-	private char[] colA = new char[3];
+	private String colA;
 	private char colL, colC, colR;
 	private boolean AntDx, AntSx, PostDx, PostSx;
 	private boolean Argento;
@@ -31,11 +31,12 @@ public class Sensors {
 		return colL;
 	}
 
-	public char[] colA() {
+	public String colA() {
 		arduino.getData('H', buffReadResponse, buffReadResponse.length);
 		for (int i = 0; i < 3; i++) {
-			colA[i] = (char) buffReadResponse[i];
+		colA += (char) buffReadResponse[i];
 		}
+
 		return colA;
 	}
 
@@ -69,6 +70,17 @@ public class Sensors {
 		return Argento;
 	}
 
+	public int Delta(){
+		int luxL, luxR;
+		arduino.getData('S', buffReadResponse, buffReadResponse.length);
+		luxL =  (int)buffReadResponse[0];
+		arduino.getData('D', buffReadResponse, buffReadResponse.length);
+		luxR =  (int)buffReadResponse[0];
+		//System.out.println("L: " + luxL + " - R: " + luxR);
+		int delta = luxL - luxR;
+		return delta;
+	}
+	
 	// public int U_Ant_I(){
 	// arduino.getData('C', buffReadResponse, buffReadResponse.length);
 	// dist = (int) buffReadResponse[0];
