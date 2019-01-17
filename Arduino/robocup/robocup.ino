@@ -44,7 +44,7 @@ void loop() {
   colL = sensors->getColorLeft();
   colC = sensors->getColorCenter();
   colR = sensors->getColorRight();
-  L_Argento=digitalRead(Argento);  
+  L_Argento=digitalRead(Argento);
   luxR=sensors->getLuxRight();
   luxL=sensors->getLuxLeft();
 }
@@ -127,7 +127,6 @@ void sendData(){
 
 
   if(request=='S'){
-
     Wire.write(luxL);
   }
 

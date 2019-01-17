@@ -2,9 +2,9 @@ package Robot;
 
 public class PID {
 	static final float TARGET = 0;
-	static final float P_CONTROL = 85;
-	static final float I_CONTROL = 3;
-	static final float D_CONTROL = 100;
+	static final float P_CONTROL = 850;
+	static final float I_CONTROL = 30;
+	static final float D_CONTROL = 1000;
 	static final float BASE_SPEED = 30;
 	static final float MAX_SPEED = 70;
 	

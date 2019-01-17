@@ -16,12 +16,12 @@ public class Motors {
 	// se i motori sono nel verso giusto
 	public RegulatedMotor MB = Motor.B;
 	public RegulatedMotor MC = Motor.C;
-	// public RegulatedMotor MA=Motor.A;
+	public RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 	// altrimenti
+	// public RegulatedMotor MD=Motor.D;
 	// public RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	// public RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
-	public RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
-	// public float sensorData;
+
 
 	public void drive(float l, float r) {
 		// B-> to left C-> to right
@@ -45,7 +45,7 @@ public class Motors {
 	}
 
 	public void travel(int vel, float dist, boolean no_wait) { // va dritto alla vel. e per una certa distanza
-																// (in cm)
+																														// (in cm)
 		MB.resetTachoCount();
 		MC.resetTachoCount();
 		MB.startSynchronization();

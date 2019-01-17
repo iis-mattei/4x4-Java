@@ -5,7 +5,7 @@ import lejos.hardware.sensor.I2CSensor;
 
 public class Sensors {
 	private int I2CSlaveAddress = 8;
-	private I2CSensor arduino = new I2CSensor(SensorPort.S1, I2CSlaveAddress);
+	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
 	private byte[] buffReadResponse = new byte[3];
 	private String colA;
 	private char colL, colC, colR;
@@ -80,7 +80,7 @@ public class Sensors {
 		int delta = luxL - luxR;
 		return delta;
 	}
-	
+
 	// public int U_Ant_I(){
 	// arduino.getData('C', buffReadResponse, buffReadResponse.length);
 	// dist = (int) buffReadResponse[0];
