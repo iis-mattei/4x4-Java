@@ -42,8 +42,11 @@ void setup() {
 
 void loop() {
   colL = sensors->getColorLeft();
+  //Serial.println(colL);
   colC = sensors->getColorCenter();
+  //Serial.println(colC);
   colR = sensors->getColorRight();
+  //Serial.println(colR);
   L_Argento=digitalRead(Argento);
   luxR=sensors->getLuxRight();
   luxL=sensors->getLuxLeft();

@@ -1,64 +1,77 @@
 package Robot;
 
+import lejos.hardware.Button;
+
 public class Main {
 	static Sensors sensori = new Sensors();
 	static Motors motori = new Motors();
 	static int VEL_STD = 1000;
 	static int[] speed = new int[2];
 
-	public static void main(String args[]) {
-		motori.travel(VEL_STD, 50);
-		motori.spin(50, 90);
-		
-//		speed = PID.getSpeed(sensori.Delta());
-//		System.out.println(sensori.Delta());
-//		System.out.println("Sx" + speed[0]);
-//		System.out.println("Dx" + speed[1]);
-//		speed = PID.getSpeed(sensori.Delta());
-//		System.out.println(sensori.Delta());
-//		System.out.println("Sx" + speed[0]);
-//		System.out.println("Dx" + speed[1]);
-//		speed = PID.getSpeed(sensori.Delta());
-//		System.out.println(sensori.Delta());
-//		System.out.println("Sx" + speed[0]);
-//		System.out.println("Dx" + speed[1]);
-//		speed = PID.getSpeed(sensori.Delta());
-//		System.out.println(sensori.Delta());
-//		System.out.println("Sx" + speed[0]);
-//		System.out.println("Dx" + speed[1]);
-//		while (true) {
-//			switch (sensori.colA()) {
-//			case "ww":
-//				
-//				motori.drive(speed[0], speed[1]);
-//				break;
-//
-//			case "wb":
-//				if (sensori.colC() == 'b') {
-//					// tira avanti icrocio a T
-//					// senza prenotazionni per curva
-//				}
-//
-//				break;
-//
-//			case "bw":
-//				if (sensori.colC() == 'b') {
-//					// tira avanti icrocio a T
-//					// senza prenotazionni per curva
-//				}
-//
-//				break;
-//
-//			case "gw":
-//
-//				break;
-//
-//			case "wg":
-//
-//				break;
-//			}
-//
-//		}
+	public static void ZonaVittime() {
+		System.exit(0);
 	}
 
+	public static void AggiraOstacolo() {
+
+	}
+
+	public static void main(String args[]) {
+		System.out.println("Premi per partire...");
+		Button.waitForAnyPress();
+		System.out.println("Sto partendo...");
+//		while(true) {
+//			//System.out.println(sensori.Delta());
+//			speed = PID.getSpeed(sensori.Delta());
+//			if (Button.ESCAPE.isDown()) {
+//				System.exit(0);
+//			}
+//			Button.waitForAnyPress();
+//		}
+//		
+//		motori.alzaPinza();
+//		motori.abbassaPinza();
+		while (true) {
+			if (Button.ESCAPE.isDown()) {
+				System.exit(0);
+			}
+			if (sensori.Argento()) {
+				ZonaVittime();
+			}
+			speed = PID.getSpeed(sensori.Delta());
+			//System.out.println(sensori.Delta());
+			//System.out.println(sensori.colA());
+			switch (sensori.colA()) {
+			
+			case "ww":
+				System.out.println("bianco-bianco");
+				motori.drive(speed[0], speed[1]);
+				break;
+
+			case "wb":
+				System.out.println("bianco-nero");
+				motori.drive(speed[0], speed[1]);
+				break;
+
+			case "bw":
+				System.out.println("nero-bianco");
+				motori.drive(speed[0], speed[1]);
+				break;
+
+			case "gw":
+
+				break;
+
+			case "wg":
+
+				break;
+
+			case "gg":
+				// inversione di marcia
+				break;
+			}
+
+		}
+
+	}
 }

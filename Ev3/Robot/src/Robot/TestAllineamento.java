@@ -1,10 +1,16 @@
 package Robot;
 
+import lejos.hardware.Button;
+
 public class TestAllineamento {
 	static Sensors sensori = new Sensors();
 
 	public static void main(String args[]) {
 		while (true) {
+			if (Button.ESCAPE.isDown()) {
+				System.exit(0);
+			}
+		
 			if (sensori.AntDx() == true) {
 				System.out.println("AntDx");
 			}
@@ -21,10 +27,10 @@ public class TestAllineamento {
 				System.out.println("PostSx");
 
 			}
-			
-			if(sensori.Argento()==true) {
+
+			if (sensori.Argento() == true) {
 				System.out.println("Argento");
-				
+
 			}
 
 		}

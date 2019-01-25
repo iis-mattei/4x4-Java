@@ -32,9 +32,13 @@ public class Sensors {
 	}
 
 	public String colA() {
+		colA = "";
 		arduino.getData('H', buffReadResponse, buffReadResponse.length);
 		for (int i = 0; i < 3; i++) {
-		colA += (char) buffReadResponse[i];
+			if (i != 1) {
+				colA += (char) buffReadResponse[i];
+			}
+
 		}
 
 		return colA;
@@ -70,13 +74,13 @@ public class Sensors {
 		return Argento;
 	}
 
-	public int Delta(){
+	public int Delta() {
 		int luxL, luxR;
 		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-		luxL =  (int)buffReadResponse[0];
+		luxL = (int) buffReadResponse[0];
 		arduino.getData('D', buffReadResponse, buffReadResponse.length);
-		luxR =  (int)buffReadResponse[0];
-		//System.out.println("L: " + luxL + " - R: " + luxR);
+		luxR = (int) buffReadResponse[0];
+		// System.out.println("L: " + luxL + " - R: " + luxR);
 		int delta = luxL - luxR;
 		return delta;
 	}
