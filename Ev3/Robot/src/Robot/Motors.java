@@ -16,9 +16,9 @@ public class Motors {
 	// se i motori sono nel verso giusto
 	public RegulatedMotor MB = Motor.B;
 	public RegulatedMotor MC = Motor.C;
-	//public RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
+	// public RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 	// altrimenti
-	 public RegulatedMotor MD=Motor.D;
+	public RegulatedMotor MD = Motor.D;
 	// public RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	// public RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
 
@@ -136,7 +136,7 @@ public class Motors {
 		// metodo per aòzare la pinza
 		MD.setSpeed(120);
 		MD.rotate(190);
-		
+
 	}
 
 	public void abbassaPinza() {

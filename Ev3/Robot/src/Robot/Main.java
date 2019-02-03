@@ -21,16 +21,12 @@ public class Main {
 		Button.waitForAnyPress();
 		System.out.println("Sto partendo...");
 //		while(true) {
-//			//System.out.println(sensori.Delta());
 //			speed = PID.getSpeed(sensori.Delta());
 //			if (Button.ESCAPE.isDown()) {
 //				System.exit(0);
 //			}
 //			Button.waitForAnyPress();
 //		}
-//		
-//		motori.alzaPinza();
-//		motori.abbassaPinza();
 		while (true) {
 			if (Button.ESCAPE.isDown()) {
 				System.exit(0);
@@ -39,27 +35,26 @@ public class Main {
 				ZonaVittime();
 			}
 			speed = PID.getSpeed(sensori.Delta());
-			//System.out.println(sensori.Delta());
-			//System.out.println(sensori.colA());
+			// System.out.println(sensori.colA());
 			switch (sensori.colA()) {
-			
+
 			case "ww":
-				System.out.println("bianco-bianco");
+//				System.out.println("bianco-bianco");
 				motori.drive(speed[0], speed[1]);
 				break;
 
 			case "wb":
-				System.out.println("bianco-nero");
+//				System.out.println("bianco-nero");
 				motori.drive(speed[0], speed[1]);
 				break;
 
 			case "bw":
-				System.out.println("nero-bianco");
+//				System.out.println("nero-bianco");
 				motori.drive(speed[0], speed[1]);
 				break;
 
 			case "gw":
-
+//
 				break;
 
 			case "wg":
@@ -67,7 +62,7 @@ public class Main {
 				break;
 
 			case "gg":
-				// inversione di marcia
+//				inversione di marcia
 				break;
 			}
 
