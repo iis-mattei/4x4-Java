@@ -16,17 +16,20 @@ public class Main {
 
 	}
 
-	public static void main(String args[]) {
+	public static void main(String args[]) throws InterruptedException {
 		System.out.println("Premi per partire...");
 		Button.waitForAnyPress();
 		System.out.println("Sto partendo...");
 //		while(true) {
-//			speed = PID.getSpeed(sensori.Delta());
+//			System.out.println(sensori.Delta());
 //			if (Button.ESCAPE.isDown()) {
 //				System.exit(0);
 //			}
 //			Button.waitForAnyPress();
 //		}
+//		motori.drive(450, 150);
+		Thread.sleep(5000);
+//		System.out.println((new Date()).getTime() + " - Stabilizzazione");
 		while (true) {
 			if (Button.ESCAPE.isDown()) {
 				System.exit(0);
@@ -35,7 +38,7 @@ public class Main {
 				ZonaVittime();
 			}
 			speed = PID.getSpeed(sensori.Delta());
-			// System.out.println(sensori.colA());
+// 				System.out.println(sensori.colA());
 			switch (sensori.colA()) {
 
 			case "ww":
@@ -54,7 +57,7 @@ public class Main {
 				break;
 
 			case "gw":
-//
+
 				break;
 
 			case "wg":

@@ -11,7 +11,6 @@ public class Sensors {
 	private char colL, colC, colR;
 	private boolean AntDx, AntSx, PostDx, PostSx;
 	private boolean Argento;
-	// private int dist;
 
 	public char colR() {
 		arduino.getData('R', buffReadResponse, buffReadResponse.length);
@@ -77,10 +76,10 @@ public class Sensors {
 	public int Delta() {
 		int luxL, luxR;
 		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-		luxL = (int) buffReadResponse[0];
+		luxL = (int)((buffReadResponse[0] & 0xFF) | ((buffReadResponse[1] & 0x7F) << 8));
 		arduino.getData('D', buffReadResponse, buffReadResponse.length);
-		luxR = (int) buffReadResponse[0];
-		// System.out.println("L: " + luxL + " - R: " + luxR);
+		luxR = (int)((buffReadResponse[0] & 0xFF) | ((buffReadResponse[1] & 0x7F) << 8));
+//		System.out.println("L: " + luxL + " - R: " + luxR);
 		int delta = luxL - luxR;
 		return delta;
 	}

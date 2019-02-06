@@ -48,8 +48,13 @@ void loop() {
   colR = sensors->getColorRight();
   //Serial.println(colR);
   L_Argento=digitalRead(Argento);
-  luxR=sensors->getLuxRight();
   luxL=sensors->getLuxLeft();
+  //Serial.println("luxL: ");
+  //Serial.println(luxL);
+  luxR=sensors->getLuxRight();
+  //Serial.println("luxR: ");
+  //Serial.println(luxR);
+  
 }
 
 void receiveData(int byteCount) {
@@ -130,11 +135,13 @@ void sendData(){
 
 
   if(request=='S'){
-    Wire.write(luxL);
+    Wire.write(lowByte(luxL));
+    Wire.write(highByte(luxL));
   }
 
   if(request=='D'){
-    Wire.write(luxR);
+    Wire.write(lowByte(luxR));
+    Wire.write(highByte(luxR));
   }
 
   // if(request=='C'){
