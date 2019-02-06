@@ -3,61 +3,50 @@ package Robot;
 import java.util.Date;
 
 public class PID {
-	static final float TARGET = 0;
-	static final float P_CONTROL = 3F;
-	static final float I_CONTROL = 0;
-	static final float D_CONTROL = 0;
-	static final float BASE_SPEED = 200;
-	static final float MAX_SPEED = 400;
+	static final int MAX_SPEED = 200;
+	static final int MAX_DELTA = 70;
+	static final int TARGET = 0;
+	static final float P_PERCENT = 60f;	// Percentuale della correzione massima
+	static final float I_PERCENT = 3f;
+	static final float D_PERCENT = 100f;
+	static final float P_COEFF = 2 * MAX_SPEED * P_PERCENT / 100;
+	static final float I_COEFF = 2 * MAX_SPEED * I_PERCENT / 100;
+	static final float D_COEFF = 2 * MAX_SPEED * D_PERCENT / 100;
+	
+	private double lastErr = 0;
+	private double integral = 0;
 
-	private static float[] lastErrs = { 0, 0, 0 };
+	public int[] getSpeed(double delta) {
+		int[] speeds = new int[2];
+		double leftSpeed, rightSpeed;
 
-	public static int[] getSpeed(float delta) {
-		float leftSpeed, rightSpeed;
-		int[] speed = new int[2];
-		float integral = 0;
-		float deriv = 0;
-		float err = TARGET + delta;
-
-		integral *= 0.8;
-		integral += err * 0.2;
-		deriv = (float) (11.0 / 6 * err - 3 * lastErrs[0] + 3.0 / 2 * lastErrs[1] - 1.0 / 3 * lastErrs[2]);
+		double error = (TARGET + delta) * 100 / MAX_DELTA;	// Riporto l'errore in scala 0-100
+		integral = 0.6*integral + error;
+		double derivative = error - lastErr;
 		
-		float correction = P_CONTROL * err + I_CONTROL * integral + D_CONTROL * deriv;
+		double correction = P_COEFF * error / 100 + I_COEFF * integral / 100 + D_COEFF * derivative / 100;
 		if (correction > 0) {
-			leftSpeed = BASE_SPEED;
-			rightSpeed = BASE_SPEED - (correction > 2*BASE_SPEED ? 2*BASE_SPEED : correction); 
+			leftSpeed = MAX_SPEED;
+			rightSpeed = MAX_SPEED - (correction > 2*MAX_SPEED ? 2*MAX_SPEED : correction); 
 		} else {
-			leftSpeed = BASE_SPEED + (correction < -2*BASE_SPEED ? -2*BASE_SPEED : correction);
-			rightSpeed = BASE_SPEED;
+			leftSpeed = MAX_SPEED + (correction < -2*MAX_SPEED ? -2*MAX_SPEED : correction);
+			rightSpeed = MAX_SPEED;
 		}
-
-		
-
-//		Se supero la velocità massima, forzo lo spin
-//		if ((Math.abs(leftSpeed) - MAX_SPEED) > 0) {
-//			leftSpeed = Math.signum(leftSpeed) * MAX_SPEED;
-//			rightSpeed = -leftSpeed;
-//		} else {
-//			rightSpeed = BASE_SPEED - (P_CONTROL * err + I_CONTROL * integral + D_CONTROL * deriv);
-//		}
 		
 		// Sempre prima il sinistro!!!
-		speed[0] = (int) Math.round(leftSpeed);
-		speed[1] = (int) Math.round(rightSpeed);
+		speeds[0] = (int) Math.round(leftSpeed);
+		speeds[1] = (int) Math.round(rightSpeed);
+		
+		lastErr = error;
 
 		System.out.print((new Date()).getTime());
 		System.out.print("\tD: " + Math.round(delta));
-		System.out.print("\tE: " + Math.round(err));
-		System.out.print("\tD: " + Math.round(deriv));
+		System.out.print("\tE: " + Math.round(error));
+		System.out.print("\tD: " + Math.round(derivative));
 		System.out.print("\tI: " + Math.round(integral));
 		System.out.print("\tSx: " + Math.round(leftSpeed));
 		System.out.println("\tDx: " + Math.round(rightSpeed));
 
-		lastErrs[2] = lastErrs[1];
-		lastErrs[1] = lastErrs[0];
-		lastErrs[0] = err;
-
-		return speed;
+		return speeds;
 	}
 }
