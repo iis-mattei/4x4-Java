@@ -41,20 +41,20 @@ void setup() {
 }
 
 void loop() {
+  //Serial.print("Left: ");
   colL = sensors->getColorLeft();
-  //Serial.println(colL);
+  //Serial.print("Center: ");
   colC = sensors->getColorCenter();
-  //Serial.println(colC);
+  //Serial.print("Right: ");
   colR = sensors->getColorRight();
   //Serial.println(colR);
   L_Argento=digitalRead(Argento);
   luxL=sensors->getLuxLeft();
-  //Serial.println("luxL: ");
+  //Serial.print("luxL: ");
   //Serial.println(luxL);
   luxR=sensors->getLuxRight();
-  //Serial.println("luxR: ");
+  //Serial.print("luxR: ");
   //Serial.println(luxR);
-  
 }
 
 void receiveData(int byteCount) {

@@ -1,12 +1,13 @@
 #include "Sensors.h"
+#include "Arduino.h"
 
 Sensors::Sensors() {
-	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS,
-			TCS34725_GAIN_1X);
-	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS,
-			TCS34725_GAIN_1X);
-	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS,
-			TCS34725_GAIN_1X);
+	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
+			TCS34725_GAIN_4X);
+	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
+			TCS34725_GAIN_4X);
+	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
+			TCS34725_GAIN_4X);
 	Wire1.begin();
 }
 char Sensors::getColorLeft() {
@@ -54,10 +55,15 @@ void Sensors::tcaSelect(uint8_t addr) {
 }
 
 char Sensors::getColorID(int colors[]) {
+	// for(int i=0; i<3; i++){
+	// 	Serial.print(" ");
+	// 	Serial.print(colors[i]);
+	// }
+	// Serial.println();
 	const int RED = 0, GREEN = 1, BLUE = 2;
-	const int blackMax = 120;
-	const int whiteMax = 350;
-	const float greenMultiplier = 1.7;
+	const int blackMax = 80;	// Sotto questa soglia è nero
+	const int whiteMax = 150;	// Sopra questa soglia è argento
+	const float greenMultiplier = 1.3;
 	float brightness = (colors[RED] + colors[GREEN] + colors[BLUE]) / 3;
 	if (brightness < blackMax) {
 		if (colors[GREEN]

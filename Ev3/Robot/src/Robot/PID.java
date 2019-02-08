@@ -4,11 +4,11 @@ import java.util.Date;
 
 public class PID {
 	static final int MAX_SPEED = 200;
-	static final int MAX_DELTA = 70;
+	static final int MAX_DELTA = 30;
 	static final int TARGET = 0;
-	static final float P_PERCENT = 60f;	// Percentuale della correzione massima
-	static final float I_PERCENT = 3f;
-	static final float D_PERCENT = 100f;
+	static final float P_PERCENT = 40f;	// Percentuale della correzione massima
+	static final float I_PERCENT = 15f;
+	static final float D_PERCENT = 5f;
 	static final float P_COEFF = 2 * MAX_SPEED * P_PERCENT / 100;
 	static final float I_COEFF = 2 * MAX_SPEED * I_PERCENT / 100;
 	static final float D_COEFF = 2 * MAX_SPEED * D_PERCENT / 100;
