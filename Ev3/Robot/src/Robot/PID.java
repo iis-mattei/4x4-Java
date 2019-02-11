@@ -9,7 +9,7 @@ public class PID {
 	private static final double D_COEFF = 60;	// 60
 	private static final double I_DECAY = 0.8;
 	
-	private double[] lastErrs = new double[3];
+	private double lastError = 0;
 	private double integral = 0;
 	private int maxDelta;
 	
@@ -23,7 +23,7 @@ public class PID {
 
 		error = (TARGET + delta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
 		integral = I_DECAY * integral + error;
-		derivative = error - lastErrs[0];
+		derivative = error - lastError;
 		if(Math.signum(error) != Math.signum(derivative)) {
 			derivative = 0;
 		}
@@ -46,9 +46,7 @@ public class PID {
 		speeds[0] = (int) Math.round(leftSpeed);
 		speeds[1] = (int) Math.round(rightSpeed);
 		
-		lastErrs[2] = lastErrs[1];
-		lastErrs[1] = lastErrs[0];
-		lastErrs[0] = error;
+		lastError = error;
 
 		System.out.print((new Date()).getTime());
 		System.out.print(" - Delta: " + Math.round(delta));
