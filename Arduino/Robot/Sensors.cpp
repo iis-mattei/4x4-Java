@@ -1,51 +1,12 @@
 #include "Sensors.h"
 #include "Arduino.h"
 
-Sensors::Sensors() {
-	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
-			TCS34725_GAIN_4X);
-	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
-			TCS34725_GAIN_4X);
-	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS,
-			TCS34725_GAIN_4X);
+Sensors::Sensors(float greenMultiplier) {
+	this->greenMultiplier = greenMultiplier;
+	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
+	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
+	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
 	Wire1.begin();
-}
-char Sensors::getColorLeft() {
-	tcaSelect (CSLAddr);
-	delay(10);
-	return this->ReadColorSensor(colorSensorL);
-}
-char Sensors::getColorRight() {
-	tcaSelect (CSRAddr);
-	delay(10);
-	return this->ReadColorSensor(colorSensorR);
-}
-char Sensors::getColorCenter() {
-	tcaSelect (CSCAddr);
-	delay(10);
-	return this->ReadColorSensor(colorSensorC);
-}
-int Sensors::getLuxLeft() {
-	uint16_t clear, red, green, blue;
-	int lux;
-
-	tcaSelect (CSLAddr);
-	delay(10);
-	colorSensorL.getRawData(&red, &green, &blue, &clear);
-	lux = (int) colorSensorL.calculateLux(red, green, blue);
-
-	return lux;
-}
-int Sensors::getLuxRight() {
-	uint16_t clear, red, green, blue;
-	int lux;
-
-	tcaSelect (CSRAddr);
-	delay(10);
-	colorSensorR.getRawData(&red, &green, &blue, &clear);
-	lux = (int) colorSensorR.calculateLux(red, green, blue);
-
-	return lux;
 }
 
 void Sensors::tcaSelect(uint8_t addr) {
@@ -53,68 +14,55 @@ void Sensors::tcaSelect(uint8_t addr) {
 	Wire1.write(1 << addr);
 	Wire1.endTransmission();
 }
-
-char Sensors::getColorID(int colors[]) {
-	// for(int i=0; i<3; i++){
-	// 	Serial.print(" ");
-	// 	Serial.print(colors[i]);
-	// }
-	// Serial.println();
-	const int RED = 0, GREEN = 1, BLUE = 2;
-	const int blackMax = 80;	// Sotto questa soglia è nero
-	const int whiteMax = 150;	// Sopra questa soglia è argento
-	const float greenMultiplier = 1.3;
-	float brightness = (colors[RED] + colors[GREEN] + colors[BLUE]) / 3;
-	if (brightness < blackMax) {
-		if (colors[GREEN]
-				> greenMultiplier * (colors[RED] + colors[BLUE]) / 2) {
+void Sensors::readSensor(Adafruit_TCS34725& colorSensor, uint8_t addr, int (&colors)[3], int &lux) {
+	uint16_t clear, red, green, blue;
+	tcaSelect(addr);
+	colorSensor.getRawData(&red, &green, &blue, &clear);
+	colors[RED] = red;
+	colors[GREEN] = green;
+	colors[BLUE] = blue;
+	lux = (int) colorSensor.calculateLux(red, green, blue);
+}
+char Sensors::getColorID(int colors[], int lux) {
+	if (lux < blackMax) {
+		if (colors[GREEN] > greenMultiplier * (colors[RED] + colors[BLUE]) / 2) {
 			return COL_GREEN;
 		} else {
 			return COL_BLACK;
 		}
-	} else if (brightness < whiteMax) {
+	} else if (lux < whiteMax) {
 		return COL_WHITE;
 	} else {
 		return COL_SILVER;
 	}
-	/*
-	 const int Red_min[] = {230, 40, 10} , Red_max[] = {350,90, 70};
-	 const int White_min[] = {120, 120, 120}, White_max[] = {200 ,350, 350};
-	 const int Green_min[] = {40, 70, 30}, Green_max[] = {50, 82, 50};
-	 const int Black_min[] = {0, 0, 0}, Black_max[] = {120, 120, 120};
-	 const int Silver_min[] = {350, 350, 350}, Silver_max[] = {1000, 1000, 1000};
-	 // se i valori sono compresi nel cuboide di uno dei colori ....
-	 if (colors[RED]>=Red_min[RED] && colors[RED]<Red_max[RED] &&
-	 colors[GREEN]>=Red_min[GREEN] && colors[GREEN]<Red_max[GREEN] &&
-	 colors[BLUE]>=Red_min[BLUE] && colors[BLUE]<Red_max[BLUE])
-	 return COL_RED;
-	 else if (colors[RED]>=White_min[RED] && colors[RED]<White_max[RED] &&
-	 colors[GREEN]>=White_min[GREEN] && colors[GREEN]<White_max[GREEN] &&
-	 colors[BLUE]>=White_min[BLUE] && colors[BLUE]<White_max[BLUE])
-	 return COL_WHITE;
-	 else if (colors[RED]>=Green_min[RED] && colors[RED]<Green_max[RED] &&
-	 colors[GREEN]>=Green_min[GREEN] && colors[GREEN]<Green_max[GREEN] &&
-	 colors[BLUE]>=Green_min[BLUE] && colors[BLUE]<Green_max[BLUE])
-	 return COL_GREEN;
-	 else if (colors[RED]>=Black_min[RED] && colors[RED]<Black_max[RED] &&
-	 colors[GREEN]>=Black_min[GREEN] && colors[GREEN]<Black_max[GREEN] &&
-	 colors[BLUE]>=Black_min[BLUE] && colors[BLUE]<Black_max[BLUE])
-	 return COL_BLACK;
-	 else if (colors[RED]>=Silver_min[RED] && colors[RED]<Silver_max[RED] &&
-	 colors[GREEN]>=Silver_min[GREEN] && colors[GREEN]<Silver_max[GREEN] &&
-	 colors[BLUE]>=Silver_min[BLUE] && colors[BLUE]<Silver_max[BLUE])
-	 return COL_SILVER;
-	 else
-	 return COL_UNKNOWN; */
 }
 
-char Sensors::ReadColorSensor(Adafruit_TCS34725& colorSensor) {
-	uint16_t clear, red, green, blue;
-	int colors[3];
-
-	colorSensor.getRawData(&red, &green, &blue, &clear);
-	colors[0] = red;
-	colors[1] = green;
-	colors[2] = blue;
-	return this->getColorID(colors);
+void Sensors::readAllColors() {
+	this->readSensor(colorSensorC, CSCAddr, colorsCenter, luxCenter);
+	this->readSensor(colorSensorL, CSLAddr, colorsLeft, luxLeft);
+	this->readSensor(colorSensorR, CSRAddr, colorsRight, luxRight);
+}
+int Sensors::detectBlack() {
+	int whiteLevel = (luxLeft+luxRight)/2;
+	blackMax = 1.5 * (luxCenter + whiteLevel) / 2;
+	whiteMax = whiteLevel*2;
+	return blackMax;
+}
+char Sensors::getColorCenter() {
+	return this->getColorID(colorsCenter, luxCenter);
+}
+char Sensors::getColorLeft() {
+	return this->getColorID(colorsLeft, luxLeft);
+}
+char Sensors::getColorRight() {
+	return this->getColorID(colorsRight, luxRight);
+}
+int Sensors::getLuxCenter() {
+	return luxCenter;
+}
+int Sensors::getLuxLeft() {
+	return luxLeft;
+}
+int Sensors::getLuxRight() {
+	return luxRight;
 }

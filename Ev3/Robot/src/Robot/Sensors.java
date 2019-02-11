@@ -4,84 +4,79 @@ import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.I2CSensor;
 
 public class Sensors {
-	private int I2CSlaveAddress = 8;
+	private final int I2CSlaveAddress = 8;
 	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
-	private byte[] buffReadResponse = new byte[3];
-	private String colA;
-	private char colL, colC, colR;
-	private boolean AntDx, AntSx, PostDx, PostSx;
-	private boolean Argento;
-
-	public char colR() {
-		arduino.getData('R', buffReadResponse, buffReadResponse.length);
-		colR = (char) buffReadResponse[0];
-		return colR;
+	
+	private String colorsLR, colorC;
+	private int luxL, luxR;
+	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft, silver;
+	private float distanceFwd;
+	
+	private int uintToInt(byte lsb, byte msb) {
+		return (int)((lsb & 0xFF) | ((msb & 0x7F) << 8));
 	}
-
-	public char colC() {
+	
+	public int detectBlack() {
+		byte[] buffReadResponse = new byte[2];
+		arduino.getData('B', buffReadResponse, buffReadResponse.length);
+		return uintToInt(buffReadResponse[0], buffReadResponse[1]);
+	}
+	
+	public void checkColors() {
+		byte[] buffReadResponse = new byte[7];
 		arduino.getData('C', buffReadResponse, buffReadResponse.length);
-		colC = (char) buffReadResponse[0];
-		return colC;
+		luxL = uintToInt(buffReadResponse[0], buffReadResponse[1]);
+		luxR = uintToInt(buffReadResponse[2], buffReadResponse[3]);
+		colorsLR = "" + (char) buffReadResponse[4] + (char) buffReadResponse[6];
+		colorC = "" + (char) buffReadResponse[5];
 	}
 
-	public char colL() {
-		arduino.getData('L', buffReadResponse, buffReadResponse.length);
-		colL = (char) buffReadResponse[0];
-		return colL;
+	public String getColorsLR() {
+		return colorsLR;
+	}
+	
+	public String getColorC() {
+		return colorC;
+	}
+	
+	public int getDelta() {
+		return (luxL - luxR);
+	}
+	
+	public void checkTouches() {
+		byte[] buffReadResponse = new byte[4];
+		arduino.getData('T', buffReadResponse, buffReadResponse.length);
+		touchFwdRight = buffReadResponse[0] != 0;
+		touchFwdLeft = buffReadResponse[1] != 0;
+		touchBackRight = buffReadResponse[2] != 0;
+		touchBackLeft = buffReadResponse[3] != 0;
 	}
 
-	public String colA() {
-		colA = "";
-		arduino.getData('H', buffReadResponse, buffReadResponse.length);
-		for (int i = 0; i < 3; i++) {
-			if (i != 1) {
-				colA += (char) buffReadResponse[i];
-			}
-
-		}
-
-		return colA;
+	public boolean isFwdRightPressed() {
+		return touchFwdRight;
 	}
 
-	public boolean AntDx() {
-		arduino.getData('X', buffReadResponse, buffReadResponse.length);
-		AntDx = buffReadResponse[0] != 0;
-		return AntDx;
+	public boolean isFwdLeftPressed() {
+		return touchFwdLeft;
 	}
 
-	public boolean AntSx() {
-		arduino.getData('Y', buffReadResponse, buffReadResponse.length);
-		AntSx = buffReadResponse[0] != 0;
-		return AntSx;
+	public boolean isBackRightPressed() {
+		return touchBackRight;
 	}
 
-	public boolean PostDx() {
-		arduino.getData('K', buffReadResponse, buffReadResponse.length);
-		PostDx = buffReadResponse[0] != 0;
-		return PostDx;
+	public boolean isBackLeftPressed() {
+		return touchBackLeft;
 	}
 
-	public boolean PostSx() {
-		arduino.getData('Z', buffReadResponse, buffReadResponse.length);
-		PostSx = buffReadResponse[0] != 0;
-		return PostSx;
-	}
-
-	public boolean Argento() {
-		arduino.getData('A', buffReadResponse, buffReadResponse.length);
-		Argento = buffReadResponse[0] != 0;
-		return Argento;
-	}
-
-	public int Delta() {
-		int luxL, luxR;
+	public boolean isSilver() {
+		byte[] buffReadResponse = new byte[1];
 		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-		luxL = (int)((buffReadResponse[0] & 0xFF) | ((buffReadResponse[1] & 0x7F) << 8));
-		arduino.getData('D', buffReadResponse, buffReadResponse.length);
-		luxR = (int)((buffReadResponse[0] & 0xFF) | ((buffReadResponse[1] & 0x7F) << 8));
-//		System.out.println("L: " + luxL + " - R: " + luxR);
-		int delta = luxL - luxR;
-		return delta;
+		silver = buffReadResponse[0] != 0;
+		return silver;
+	}
+	
+	public float getDistanceFwd() {
+		return distanceFwd;
 	}
 
 	// public int U_Ant_I(){

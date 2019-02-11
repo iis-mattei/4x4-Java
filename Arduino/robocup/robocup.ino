@@ -1,25 +1,24 @@
 #include <Wire.h>
-#include <SoftwareWire.h>
 #include <Sensors.h>
-//#include <NewPing.h>
+// #include <NewPing.h>
+
 #define SLAVE_ADDRESS 0x04
-#define AntDx 12
-#define AntSx 11
-#define PostDx 10
-#define PostSx 9
-#define Argento 8
+#define FWD_RIGHT 12
+#define FWD_LEFT 11
+#define BACK_RIGHT 10
+#define BACK_LEFT 9
+#define SILVER 8
 // #define Trigger_U_Ant_I 7
 // #define Echo_U_Ant_I 6
-//#define Max_Distance 100
+// #define Max_Distance 100
+
 Sensors *sensors;
 byte request;
-int L_Argento;
-char colL, colR, colC;
-int Delta;
-int luxL, luxR;
-//long dist;
-//  Trigger_U_Ant_S= , Trigger_U_Post= , Trigger_U_Dx= , Trigger_U_Sx= ;
-//  Echo_U_Ant_S= , Echo_U_Post= , Echo_U_Dx= , Echo_U_Sx= ;
+int lSilver;
+
+// long dist;
+// Trigger_U_Ant_S= , Trigger_U_Post= , Trigger_U_Dx= , Trigger_U_Sx= ;
+// Echo_U_Ant_S= , Echo_U_Post= , Echo_U_Dx= , Echo_U_Sx= ;
 // NewPing U_Ant_S(Trigger_U_Ant_S, Echo_U_Ant_S, Max_Distance);
 // NewPing U_Post(Trigger_U_Post, Echo_U_Post, Max_Distance);
 // NewPing U_Dx(Trigger_U_Dx, Echo_U_Dx, Max_Distance);
@@ -27,12 +26,12 @@ int luxL, luxR;
 
 
 void setup() {
-  sensors = new Sensors();
-  pinMode(AntDx, INPUT_PULLUP);
-  pinMode(AntSx, INPUT_PULLUP);
-  pinMode(PostDx, INPUT_PULLUP);
-  pinMode(PostSx, INPUT_PULLUP);
-  pinMode(Argento, INPUT_PULLUP);
+  sensors = new Sensors(1.2); // greenMultiplier
+  pinMode(FWD_RIGHT, INPUT_PULLUP);
+  pinMode(FWD_LEFT, INPUT_PULLUP);
+  pinMode(BACK_RIGHT, INPUT_PULLUP);
+  pinMode(BACK_LEFT, INPUT_PULLUP);
+  pinMode(SILVER, INPUT_PULLUP);
   Serial.begin(9600);
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(receiveData);
@@ -41,82 +40,52 @@ void setup() {
 }
 
 void loop() {
-  //Serial.print("Left: ");
-  colL = sensors->getColorLeft();
-  //Serial.print("Center: ");
-  colC = sensors->getColorCenter();
-  //Serial.print("Right: ");
-  colR = sensors->getColorRight();
-  //Serial.println(colR);
-  L_Argento=digitalRead(Argento);
-  luxL=sensors->getLuxLeft();
-  //Serial.print("luxL: ");
-  //Serial.println(luxL);
-  luxR=sensors->getLuxRight();
-  //Serial.print("luxR: ");
-  //Serial.println(luxR);
+  sensors->readAllColors();
+  // lSilver = digitalRead(SILVER);
 }
 
 void receiveData(int byteCount) {
-    while(Wire.available()>0) {
-      request=Wire.read();
-    }
+  while (Wire.available() > 0) {
+    request = Wire.read();
+  }
 }
 
-void sendData(){
-  if(request == 'L'){
-     Wire.write(colL);
-     //Serial.println("Fatto");
-     //Serial.println(colL);
+void sendData() {
+  if (request == 'B') {  // rilevazione livello del nero
+    int blackLevel = sensors->detectBlack();
+    Wire.write(lowByte(blackLevel));
+    Wire.write(highByte(blackLevel));
+  } else if (request == 'C') {  // checkColors: lux + colori
+    Wire.write(lowByte(sensors->getLuxLeft()));
+    Wire.write(highByte(sensors->getLuxLeft()));
+    Wire.write(lowByte(sensors->getLuxRight()));
+    Wire.write(highByte(sensors->getLuxRight()));
+    Wire.write(sensors->getColorLeft());
+    Wire.write(sensors->getColorCenter());
+    Wire.write(sensors->getColorRight());
   }
 
-  if(request == 'C'){
-     Wire.write(colC);
-     //Serial.println("Fatto");
-     //Serial.println(colC);
-  }
 
-  if(request == 'R'){
-     Wire.write(colR);
-     //Serial.println("Fatto");
-     //Serial.println(colR);
-  }
-
-  if(request == 'H') {
-    Wire.write(colL);
-    Wire.write(colC);
-    Wire.write(colR);
-  }
-
-  if(request == 'X'){
-    if(digitalRead(AntDx)==HIGH){
+  if (request == 'T') {
+    if (digitalRead(FWD_RIGHT) == HIGH) {
       //Serial.println("Anteriore Destro premuto");
       Wire.write(true);
     } else {
       Wire.write(false);
     }
-  }
-
-  if(request == 'Y'){
-    if(digitalRead(AntSx)==HIGH){
+    if (digitalRead(FWD_LEFT) == HIGH) {
       //Serial.println("Anteriore Sinistro premuto");
       Wire.write(true);
     } else {
       Wire.write(false);
     }
-  }
-
-  if(request == 'K'){
-    if(digitalRead(PostDx)==HIGH){
+    if (digitalRead(BACK_RIGHT) == HIGH) {
       //Serial.println("Posteriore Destro premuto");
       Wire.write(true);
     } else {
       Wire.write(false);
     }
-  }
-
-  if(request == 'Z'){
-    if(digitalRead(PostSx)==HIGH){
+    if (digitalRead(BACK_LEFT) == HIGH) {
       //Serial.println("Posteriore Sinistro premuto");
       Wire.write(true);
     } else {
@@ -124,8 +93,8 @@ void sendData(){
     }
   }
 
-  if(request == 'A'){
-    if(L_Argento==LOW){
+  if (request == 'S') {
+    if (lSilver == LOW) {
       //Serial.println("Argento Trovato");
       Wire.write(true);
     } else {
@@ -133,24 +102,8 @@ void sendData(){
     }
   }
 
-
-  if(request=='S'){
-    Wire.write(lowByte(luxL));
-    Wire.write(highByte(luxL));
-  }
-
-  if(request=='D'){
-    Wire.write(lowByte(luxR));
-    Wire.write(highByte(luxR));
-  }
-
   // if(request=='C'){
   //   dist=U_Ant_I.ping_cm();
   //   Wire.write(dist);
   // }
-
-
-
-
-
 }
