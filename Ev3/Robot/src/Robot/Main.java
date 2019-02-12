@@ -25,7 +25,8 @@ public class Main {
 		Button.waitForAnyPress();
 		System.out.println("Calibrazione in corso...");
 		int blackLevel = sensors.detectBlack();		
-		int deltaMax = (int)Math.round(blackLevel*0.9);
+		sensors.checkColors();
+		int deltaMax = (int)Math.round(((sensors.getLuxL()+sensors.getLuxR())/2)-sensors.getLuxC());
 		System.out.println("blackLevel = " + blackLevel + "\tdeltaMax = " + deltaMax);
 		pid = new PID(deltaMax);
 		System.out.println("Sto partendo...");

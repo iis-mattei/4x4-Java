@@ -8,7 +8,7 @@ public class Sensors {
 	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
 	
 	private String colorsLR, colorC;
-	private int luxL, luxR;
+	private int luxL, luxC, luxR;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft, silver;
 	private float distanceFwd;
 	
@@ -23,12 +23,13 @@ public class Sensors {
 	}
 	
 	public void checkColors() {
-		byte[] buffReadResponse = new byte[7];
+		byte[] buffReadResponse = new byte[9];
 		arduino.getData('C', buffReadResponse, buffReadResponse.length);
 		luxL = uintToInt(buffReadResponse[0], buffReadResponse[1]);
-		luxR = uintToInt(buffReadResponse[2], buffReadResponse[3]);
-		colorsLR = "" + (char) buffReadResponse[4] + (char) buffReadResponse[6];
-		colorC = "" + (char) buffReadResponse[5];
+		luxC = uintToInt(buffReadResponse[2], buffReadResponse[3]);
+		luxR = uintToInt(buffReadResponse[4], buffReadResponse[5]);
+		colorsLR = "" + (char) buffReadResponse[6] + (char) buffReadResponse[8];
+		colorC = "" + (char) buffReadResponse[7];
 	}
 
 	public String getColorsLR() {
@@ -41,6 +42,18 @@ public class Sensors {
 	
 	public int getDelta() {
 		return (luxL - luxR);
+	}
+	
+	public int getLuxL() {
+		return luxL;
+	}
+	
+	public int getLuxC() {
+		return luxC;
+	}
+	
+	public int getLuxR() {
+		return luxR;
 	}
 	
 	public void checkTouches() {

@@ -26,7 +26,7 @@ int lSilver;
 
 
 void setup() {
-  sensors = new Sensors(1.2); // greenMultiplier
+  sensors = new Sensors();
   pinMode(FWD_RIGHT, INPUT_PULLUP);
   pinMode(FWD_LEFT, INPUT_PULLUP);
   pinMode(BACK_RIGHT, INPUT_PULLUP);
@@ -37,10 +37,15 @@ void setup() {
   Wire.onReceive(receiveData);
   Wire.onRequest(sendData);
   Serial.println("Ready!");
+  // Per il test dei sensori di colore
+  // sensors->readAllColors();
+  // int blackLevel = sensors->detectBlack();
+  // Serial.println(blackLevel);
 }
 
 void loop() {
   sensors->readAllColors();
+  // sensors->debugColors();
   // lSilver = digitalRead(SILVER);
 }
 
@@ -58,6 +63,8 @@ void sendData() {
   } else if (request == 'C') {  // checkColors: lux + colori
     Wire.write(lowByte(sensors->getLuxLeft()));
     Wire.write(highByte(sensors->getLuxLeft()));
+    Wire.write(lowByte(sensors->getLuxCenter()));
+    Wire.write(highByte(sensors->getLuxCenter()));
     Wire.write(lowByte(sensors->getLuxRight()));
     Wire.write(highByte(sensors->getLuxRight()));
     Wire.write(sensors->getColorLeft());
@@ -66,7 +73,7 @@ void sendData() {
   }
 
 
-  if (request == 'T') {
+  if (request == 'T') { // tutti i 4 sensori di tocco
     if (digitalRead(FWD_RIGHT) == HIGH) {
       //Serial.println("Anteriore Destro premuto");
       Wire.write(true);

@@ -1,8 +1,9 @@
 #include "Sensors.h"
 #include "Arduino.h"
 
-Sensors::Sensors(float greenMultiplier) {
-	this->greenMultiplier = greenMultiplier;
+const float Sensors::GREEN_MULTIPLIER = 1.2f;
+
+Sensors::Sensors() {
 	colorSensorL = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
 	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
 	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
@@ -24,12 +25,10 @@ void Sensors::readSensor(Adafruit_TCS34725& colorSensor, uint8_t addr, int (&col
 	lux = (int) colorSensor.calculateLux(red, green, blue);
 }
 char Sensors::getColorID(int colors[], int lux) {
-	if (lux < blackMax) {
-		if (colors[GREEN] > greenMultiplier * (colors[RED] + colors[BLUE]) / 2) {
+	if (colors[GREEN] > GREEN_MULTIPLIER * (colors[RED] + colors[BLUE]) / 2) {
 			return COL_GREEN;
-		} else {
-			return COL_BLACK;
-		}
+	} else if (lux < blackMax) {
+		return COL_BLACK;
 	} else if (lux < whiteMax) {
 		return COL_WHITE;
 	} else {
@@ -42,9 +41,42 @@ void Sensors::readAllColors() {
 	this->readSensor(colorSensorL, CSLAddr, colorsLeft, luxLeft);
 	this->readSensor(colorSensorR, CSRAddr, colorsRight, luxRight);
 }
+void Sensors::debugColors() {
+	Serial.print("Left:\tRGB:");
+	Serial.print(colorsLeft[RED]);
+	Serial.print(" ");
+	Serial.print(colorsLeft[GREEN]);
+	Serial.print(" ");
+	Serial.print(colorsLeft[BLUE]);
+	Serial.print("\tLux:");
+	Serial.print(luxLeft);
+	Serial.print("\tCol:");
+	Serial.println(getColorLeft());
+	Serial.print("Center:\tRGB:");
+	Serial.print(colorsCenter[RED]);
+	Serial.print(" ");
+	Serial.print(colorsCenter[GREEN]);
+	Serial.print(" ");
+	Serial.print(colorsCenter[BLUE]);
+	Serial.print("\tLux:");
+	Serial.print(luxCenter);
+	Serial.print("\tCol:");
+	Serial.println(getColorCenter());
+	Serial.print("Right:\tRGB:");
+	Serial.print(colorsRight[RED]);
+	Serial.print(" ");
+	Serial.print(colorsRight[GREEN]);
+	Serial.print(" ");
+	Serial.print(colorsRight[BLUE]);
+	Serial.print("\tLux:");
+	Serial.print(luxRight);
+	Serial.print("\tCol:");
+	Serial.println(getColorRight());
+	delay(1000);
+}
 int Sensors::detectBlack() {
 	int whiteLevel = (luxLeft+luxRight)/2;
-	blackMax = 1.5 * (luxCenter + whiteLevel) / 2;
+	blackMax = (luxCenter + whiteLevel) / 2;
 	whiteMax = whiteLevel*2;
 	return blackMax;
 }
