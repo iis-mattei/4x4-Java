@@ -3,6 +3,7 @@ package Robot;
 import java.util.Date;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 
 public class Main {
 	static Sensors sensors = new Sensors();
@@ -21,6 +22,7 @@ public class Main {
 	public static void main(String args[]) throws InterruptedException {
 		int[] speeds = new int[2];
 		
+		Sound.beepSequenceUp();
 		System.out.println("Premi per partire...");
 		Button.waitForAnyPress();
 		System.out.println("Calibrazione in corso...");
@@ -63,14 +65,19 @@ public class Main {
 					} else if(greenLeft) {	// Curva a sinistra
 						System.out.println((new Date()).getTime() + "\tCurva a sinistra");
 						motors.spin(Motors.BASE_SPEED, 90);
+						motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+						Thread.sleep(1000);
 						greenLeft = false;
 					} else if(greenRight) {	// Curva a destra
 						System.out.println((new Date()).getTime() + "\tCurva a destra");
 						motors.spin(Motors.BASE_SPEED, -90);
+						motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+						Thread.sleep(1000);
 						greenRight = false;
 					} else if(greenLeft && greenRight) {	// Inversione di marcia
 						System.out.println((new Date()).getTime() + "\tInversione di marcia");
 						motors.spin(Motors.BASE_SPEED, 180);
+						motors.travel(Motors.BASE_SPEED, 6);
 						greenLeft = false;
 						greenRight = false;
 					}
@@ -78,15 +85,18 @@ public class Main {
 	
 				case "gw":	// Prenoto curva a sinistra
 					greenLeft = true;
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 					break;
 	
 				case "wg":	// Prenoto curva a destra
 					greenRight = true;
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 					break;
 	
 				case "gg":	// Prenoto inversione di marcia
 					greenLeft = true;
 					greenRight = true;
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 					break;
 			}
 

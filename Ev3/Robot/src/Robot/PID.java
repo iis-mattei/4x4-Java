@@ -4,13 +4,13 @@ import java.util.Date;
 
 public class PID {
 	private static final int TARGET = 0;
-	private static final double P_COEFF = 12.5;	// 12.5
-	private static final double I_COEFF = 2;	// 1
-	private static final double D_COEFF = 60;	// 60
-	private static final double I_DECAY = 0.8;
+	private static final double P_COEFF = 45;	// 45
+	private static final double I_COEFF = 5;	// 5
+	private static final double D_COEFF = 450;	// 450
+	private static final int N_ERRORS = 5;
 	
-	private double lastError = 0;
-	private double integral = 0;
+	private double[] lastErrors = new double[N_ERRORS];
+	private double integral;
 	private int maxDelta;
 	
 	public PID(int maxDelta) {
@@ -21,20 +21,29 @@ public class PID {
 		int[] speeds = new int[2];
 		double leftSpeed, rightSpeed, error, derivative, correction;
 
-		error = (TARGET + delta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
-		integral = I_DECAY * integral + error;
-		derivative = error - lastError;
-		if(Math.signum(error) != Math.signum(derivative)) {
+		double constrainedDelta = delta > maxDelta ? maxDelta : delta;	// Evito valori fuori scala
+		error = (TARGET + constrainedDelta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
+		
+		integral = 0;
+		for (int i = 0; i < lastErrors.length; i++) {
+			integral += lastErrors[i];
+		}
+		if(Math.signum(integral) != Math.signum(error)) {
+			integral = 0;
+		}
+		
+		derivative = error - lastErrors[0];
+		if(Math.signum(derivative) != Math.signum(error)) {
 			derivative = 0;
 		}
 		
 		correction = (P_COEFF * error + I_COEFF * integral + D_COEFF * derivative) / 100;
 		if(correction > 0) {
-			leftSpeed = Motors.BASE_SPEED + 0.5*correction;
-			rightSpeed = Motors.BASE_SPEED - 3.5*correction; 
+			leftSpeed = Motors.BASE_SPEED;
+			rightSpeed = Motors.BASE_SPEED - correction; 
 		} else {
-			leftSpeed = Motors.BASE_SPEED + 3.5*correction;
-			rightSpeed = Motors.BASE_SPEED - 0.5*correction; 
+			leftSpeed = Motors.BASE_SPEED + correction;
+			rightSpeed = Motors.BASE_SPEED; 
 		}
 		
 		// Impongo il rispetto delle soglie
@@ -46,7 +55,10 @@ public class PID {
 		speeds[0] = (int) Math.round(leftSpeed);
 		speeds[1] = (int) Math.round(rightSpeed);
 		
-		lastError = error;
+		for (int i = lastErrors.length - 1; i >= 1 ; i--) {
+			lastErrors[i] = lastErrors[i-1];
+		}
+		lastErrors[0] = error;
 
 		System.out.print((new Date()).getTime());
 		System.out.print(" - Delta: " + Math.round(delta));
