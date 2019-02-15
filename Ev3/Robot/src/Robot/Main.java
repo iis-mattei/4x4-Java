@@ -22,7 +22,7 @@ public class Main {
 	public static void main(String args[]) throws InterruptedException {
 		int[] speeds = new int[2];
 		
-		Sound.beepSequenceUp();
+//		Sound.beepSequenceUp();
 		System.out.println("Premi per partire...");
 		Button.waitForAnyPress();
 		System.out.println("Calibrazione in corso...");

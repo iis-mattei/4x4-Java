@@ -2,31 +2,32 @@ package Robot;
 
 import lejos.hardware.Battery;
 import lejos.hardware.motor.Motor;
+import lejos.robotics.MirrorMotor;
 //import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
 
 public class Motors {
-	public static final int BASE_SPEED = 25;	// Scala 0-100
-	public static final int MAX_SPEED = 50;		// Oltre i motori diventano imprecisi
+	public static final int BASE_SPEED = 40;	// Scala 0-100
+	public static final int MAX_SPEED = 80;		// Oltre i motori diventano imprecisi
 	
-	private static final float diameter = 5.6f;
-	private static final float axis = 15.8f;
-	private static final float externalAxis = 18.6f;
+	private static final float diameter = 5.6f;	// Da ricalcolare
+	private static final float axis = 15.8f;	// Da ricalcolare
+	private static final float externalAxis = 18.6f;	// Da ricalcolare
 	private static final float axisDiff = externalAxis - axis;
 	private static final float coeffCm = 360 / ((float) Math.PI * diameter);
 	private static final float coeffSpin = axis / diameter;
 	private static final float aD = axis + axisDiff;
-	private static final float wheelCorrectionRatio = 1f; // da calcolare
+	private static final float wheelCorrectionRatio = 1f; // solo se necessario
 	
 	// se i motori sono nel verso giusto
-	private RegulatedMotor MB = Motor.B;
-	private RegulatedMotor MC = Motor.C;
+//	private RegulatedMotor MB = Motor.B;
+//	private RegulatedMotor MC = Motor.C;
 	// public RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 	
 	// altrimenti
 	private RegulatedMotor MD = Motor.D;
-	// public RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
-	// public RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
+	 private RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
+	 private RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
 
 	// Converte la velocità 0-100 in quella effettiva dei motori
 	private int calcActualSpeed(int centVel) {
