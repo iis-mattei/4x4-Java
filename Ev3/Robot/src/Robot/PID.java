@@ -5,7 +5,7 @@ import java.util.Date;
 public class PID {
 	private static final int TARGET = 0;
 	private static final double P_COEFF = 45;	// 45
-	private static final double I_COEFF = 5;	// 5
+	private static final double I_COEFF = 4.5;	// 4.5
 	private static final double D_COEFF = 450;	// 450
 	private static final int N_ERRORS = 5;
 	
