@@ -10,9 +10,9 @@ public class Motors {
 	public static final int BASE_SPEED = 40;	// Scala 0-100
 	public static final int MAX_SPEED = 80;		// Oltre i motori diventano imprecisi
 	
-	private static final float diameter = 5.6f;	// Da ricalcolare
-	private static final float axis = 15.8f;	// Da ricalcolare
-	private static final float externalAxis = 18.6f;	// Da ricalcolare
+	private static final float diameter = 3.2f;
+	private static final float axis = 12.3f;
+	private static final float externalAxis = 16.3f;
 	private static final float axisDiff = externalAxis - axis;
 	private static final float coeffCm = 360 / ((float) Math.PI * diameter);
 	private static final float coeffSpin = axis / diameter;
