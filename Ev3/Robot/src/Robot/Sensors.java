@@ -3,31 +3,66 @@ package Robot;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.I2CSensor;
+import lejos.robotics.SampleProvider;
 
 public class Sensors {
 	private final int I2CSlaveAddress = 8;
 	private EV3UltrasonicSensor usFwdLow;
 	private EV3UltrasonicSensor usFwdHigh;
 	private EV3UltrasonicSensor usSide;
+	private SampleProvider spFwdLow, spFwdHigh, spSide;
+	private float[] sample;
 	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
 	
 	private String colorsLR, colorC;
 	private int luxL, luxC, luxR;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft, silver;
-	private float distanceFwdLow, distanceFwdHigh, distanceSide;
 	
 	private int uintToInt(byte lsb, byte msb) {
 		return (int)((lsb & 0xFF) | ((msb & 0x7F) << 8));
 	}
 	
 	public Sensors() {
-		try {
-			usFwdLow = new EV3UltrasonicSensor(SensorPort.S1);
-			usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
-			usSide = new EV3UltrasonicSensor(SensorPort.S3);
-		} catch (Exception e) {
-			System.out.println("Errore ultrasuoni...");
-		}
+		boolean sensorOk = false;
+		do {
+			try {
+				usFwdLow = new EV3UltrasonicSensor(SensorPort.S1);
+				sensorOk = true;
+			} catch (Exception e) {
+				System.out.println("Errore ultrasuoni S1...");
+				sensorOk = false;
+			}
+		} while (!sensorOk);
+		System.out.println("S1 OK");
+		
+		sensorOk = false;
+		do {
+			try {
+				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
+				sensorOk = true;
+			} catch (Exception e) {
+				System.out.println("Errore ultrasuoni S2...");
+				sensorOk = false;
+			}
+		} while (!sensorOk);
+		System.out.println("S2 OK");
+		
+		sensorOk = false;
+		do {
+			try {
+				usSide = new EV3UltrasonicSensor(SensorPort.S3);
+				sensorOk = true;
+			} catch (Exception e) {
+				System.out.println("Errore ultrasuoni S3...");
+				sensorOk = false;
+			}
+		} while (!sensorOk);
+		System.out.println("S3 OK");
+		
+		spFwdLow = usFwdLow.getDistanceMode();
+		spFwdHigh = usFwdHigh.getDistanceMode();
+		spSide = usSide.getDistanceMode();
+		sample = new float[spFwdLow.sampleSize()];
 	}
 	
 	public int detectBlack() {
@@ -52,6 +87,10 @@ public class Sensors {
 	
 	public String getColorC() {
 		return colorC;
+	}
+	
+	public boolean isAnyBlack() {
+		return ( colorC.equals("b") || colorsLR.equals("bn") || colorsLR.equals("nb") );
 	}
 	
 	public int getDelta() {
@@ -102,16 +141,19 @@ public class Sensors {
 		return silver;
 	}
 	
-	public float getDistanceFwdLow() {
-		return distanceFwdLow;
+	public float checkDistanceFwdLow() {
+		spFwdLow.fetchSample(sample, 0);
+		return sample[0];
 	}
 	
-	public float getDistanceFwdHigh() {
-		return distanceFwdHigh;
+	public float checkDistanceFwdHigh() {
+		spFwdHigh.fetchSample(sample, 0);
+		return sample[0];
 	}
 	
-	public float getDistanceSide() {
-		return distanceSide;
+	public float checkDistanceSide() {
+		spSide.fetchSample(sample, 0);
+		return sample[0];
 	}
 
 	// public int U_Ant_I(){

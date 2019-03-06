@@ -108,9 +108,4 @@ void sendData() {
       Wire.write(false);
     }
   }
-
-  // if(request=='C'){
-  //   dist=U_Ant_I.ping_cm();
-  //   Wire.write(dist);
-  // }
 }

@@ -7,27 +7,28 @@ import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
 
 public class Motors {
-	public static final int BASE_SPEED = 25;	// Scala 0-100
-	public static final int MAX_SPEED = 50;		// Oltre i motori diventano imprecisi
-	
-	private static final float diameter = 3.2f;
-	private static final float axis = 12.3f;
-	private static final float externalAxis = 16.3f;
-	private static final float axisDiff = externalAxis - axis;
-	private static final float coeffCm = 360 / ((float) Math.PI * diameter);
-	private static final float coeffSpin = axis / diameter;
-	private static final float aD = axis + axisDiff;
-	private static final float wheelCorrectionRatio = 1f; // solo se necessario
-	
-	// se i motori sono nel verso giusto
+	public static final int BASE_SPEED = 40; // Scala 0-100
+	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
+	public static final double WHEEL_DIAM = 3.2;
+	public static final double INT_AXIS = 12.4;
+	public static final double EXT_AXIS = 16.4;
+	public static final double DIFF_AXIS = EXT_AXIS - INT_AXIS;
+	public static final double COEFF_CM = 360 / ((double) Math.PI * WHEEL_DIAM);
+	public static final double COEFF_SPIN = INT_AXIS / WHEEL_DIAM;
+	public static final double WHEEL_CORRECTION = 1.0; // Modificare solo se necessario
+
+	// Posizione motori: B-> sinistro C-> destro
+	// da attivare se i motori sono nel verso giusto
+	private RegulatedMotor MA = Motor.A;
 //	private RegulatedMotor MB = Motor.B;
 //	private RegulatedMotor MC = Motor.C;
-	// public RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
-	
-	// altrimenti
 	private RegulatedMotor MD = Motor.D;
-	 private RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
-	 private RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
+
+	// Da attivare se i motori sono ribaltati
+// 	private RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
+	private RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
+	private RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
+//	private RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 
 	// Converte la velocità 0-100 in quella effettiva dei motori
 	private int calcActualSpeed(int centVel) {
@@ -37,7 +38,7 @@ public class Motors {
 		return actualSpeed;
 	}
 
-	public void drive(float leftSpeed, float rightSpeed) { // B-> to left C-> to right
+	public void drive(double leftSpeed, double rightSpeed) {
 		MB.setSpeed(calcActualSpeed((int) Math.abs(leftSpeed)));
 		MC.setSpeed(calcActualSpeed((int) Math.abs(rightSpeed)));
 		if (leftSpeed > 0) {
@@ -56,33 +57,30 @@ public class Motors {
 		}
 	}
 
-	public void travel(int speed, float distance, boolean noWait) { // va dritto, distanza in cm
-		MB.resetTachoCount();
-		MC.resetTachoCount();
+	// Va dritto, distanza in cm
+	public void travel(int speed, double distance, boolean noWait) {
 		MB.startSynchronization();
 		MB.setSpeed(calcActualSpeed(speed));
-		MC.setSpeed(calcActualSpeed((int) (speed * wheelCorrectionRatio)));
-		MC.rotate((int) (distance * coeffCm), true);
-		MB.rotate((int) (distance * coeffCm * (2 - wheelCorrectionRatio)), true);
+		MC.setSpeed(calcActualSpeed((int) (speed * WHEEL_CORRECTION)));
+		MB.rotate((int) (distance * COEFF_CM * (2 - WHEEL_CORRECTION)), true);
+		MC.rotate((int) (distance * COEFF_CM), true);
 		MB.endSynchronization();
 		if (!noWait)
 			while (isMoving())
 				Thread.yield();
 	}
 
-	public void travel(int speed, float distance) {
+	public void travel(int speed, double distance) {
 		travel(speed, distance, false);
 	}
 
-	// velocità positiva => senso antiorario
+	// speed: positivo => senso antiorario
 	public void spin(int speed, int arc, boolean noWait) {
-		MB.resetTachoCount();
-		MC.resetTachoCount();
 		MB.startSynchronization();
 		MB.setSpeed(calcActualSpeed(speed));
-		MC.setSpeed(calcActualSpeed((int) (speed * wheelCorrectionRatio)));
-		MC.rotate((int) (arc * coeffSpin), true);
-		MB.rotate((int) (-arc * coeffSpin * (2 - wheelCorrectionRatio)), true);
+		MC.setSpeed(calcActualSpeed((int) (speed * WHEEL_CORRECTION)));
+		MC.rotate((int) (arc * COEFF_SPIN), true);
+		MB.rotate((int) (-arc * COEFF_SPIN * (2 - WHEEL_CORRECTION)), true);
 		MB.endSynchronization();
 		if (!noWait)
 			while (isMoving())
@@ -93,62 +91,62 @@ public class Motors {
 		spin(speed, arc, false);
 	}
 
-	// rapporto: % di rallentamento della ruota interna rispetto all'esterna
-	public void spinContinuous(int speed, int ratio, int direction) {
-		MB.startSynchronization();
-		if (direction < 0) { // se la direzione e' negativa, giro a sinistra
-			MC.setSpeed(calcActualSpeed(speed));
-			MB.setSpeed(calcActualSpeed(speed * (100 - ratio) / 100));
-			MC.forward();
-			MB.backward();
-		} else { // altrimenti, con la direzione positiva giro a destra
-			MC.setSpeed(calcActualSpeed(speed * (100 - ratio) / 100));
-			MB.setSpeed(calcActualSpeed(speed));
-			MC.backward();
-			MB.forward();
-		}
-		MB.endSynchronization();
-	}
-
-	public void arc(int speed, float radius, float arc, boolean noWait) {
-		float intToExtRatio = (radius + axisDiff / 2) / (radius + aD - axisDiff / 2);
-		MB.resetTachoCount();
-		MC.resetTachoCount();
+	// arc: positivo => senso antiorario
+	public void arc(int speed, double radius, double arc, boolean noWait) {
+		double intToExtRatio = (radius + DIFF_AXIS / 2) / (radius + INT_AXIS / 2);
 		if (arc > 0) {
 			MB.setSpeed(calcActualSpeed((int) (speed * intToExtRatio)));
-			MC.setSpeed(calcActualSpeed((int) (wheelCorrectionRatio * speed)));
+			MC.setSpeed(calcActualSpeed((int) (WHEEL_CORRECTION * speed)));
 			// controllo l'arco rispetto alla ruota interna
-			MB.rotate((int) (Math.signum(speed) * arc * (radius + axisDiff / 2) * coeffCm * Math.PI / 180), true);
+			MB.rotate((int) (Math.signum(speed) * arc * (radius + DIFF_AXIS / 2) * COEFF_CM * Math.PI / 180), true);
 			// controllo l'arco rispetto alla ruota esterna
-			MC.rotate((int) (Math.signum(speed) * arc * (radius + aD - axisDiff / 2) * coeffCm * wheelCorrectionRatio
-					* Math.PI / 180), true);
+			MC.rotate((int) (Math.signum(speed) * arc * (radius + INT_AXIS / 2) * COEFF_CM * WHEEL_CORRECTION * Math.PI
+					/ 180), true);
 		} else {
 			arc *= -1;
-			MC.setSpeed(calcActualSpeed((int) (speed * intToExtRatio * wheelCorrectionRatio)));
 			MB.setSpeed(calcActualSpeed((int) (speed)));
-			// controllo l'arco rispetto alla ruota interna
-			MC.rotate((int) (Math.signum(speed) * arc * (radius + axisDiff / 2) * coeffCm * wheelCorrectionRatio
-					* Math.PI / 180), true);
+			MC.setSpeed(calcActualSpeed((int) (speed * intToExtRatio * WHEEL_CORRECTION)));
 			// controllo l'arco rispetto alla ruota esterna
-			MB.rotate((int) (Math.signum(speed) * arc * (radius + aD - axisDiff / 2) * coeffCm * Math.PI / 180), true);
+			MB.rotate((int) (Math.signum(speed) * arc * (radius + INT_AXIS / 2) * COEFF_CM * Math.PI / 180), true);
+			// controllo l'arco rispetto alla ruota interna
+			MC.rotate((int) (Math.signum(speed) * arc * (radius + DIFF_AXIS / 2) * COEFF_CM * WHEEL_CORRECTION * Math.PI
+					/ 180), true);
 		}
 		if (!noWait)
 			while (isMoving())
 				Thread.yield();
 	}
 
-	public void arc(int extSpeed, float radius, float arc) {
-		arc(extSpeed, radius, arc, false);
+	public void arc(int speed, double radius, double arc) {
+		arc(speed, radius, arc, false);
 	}
 
-	public void bladeLift() { // alza la pinza
+	// Alza la pinza
+	public void bladeLift() {
 		MD.setSpeed(120);
 		MD.rotate(190);
+		MD.stop();
 	}
 
-	public void bladeLower() { // abbassa la pinza
+	// Abbassa la pinza
+	public void bladeLower() {
 		MD.setSpeed(120);
 		MD.rotate(-190);
+		MD.stop();
+	}
+
+	// Apri il portapalline
+	public void containerOpen() {
+		MA.setSpeed(120);
+		MA.rotate(130);
+		MA.stop();
+	}
+
+	// Chiudi il portapalline
+	public void containerClose() {
+		MA.setSpeed(120);
+		MA.rotate(-130);
+		MA.stop();
 	}
 
 	public boolean isMoving() {
@@ -158,5 +156,14 @@ public class Motors {
 	public void stop() {
 		MB.stop();
 		MC.stop();
+	}
+
+	public int getTachoCount() {
+		return (int) Math.round((MB.getTachoCount() + MC.getTachoCount()) / 2);
+	}
+
+	public void resetTachoCount() {
+		MB.resetTachoCount();
+		MC.resetTachoCount();
 	}
 }
