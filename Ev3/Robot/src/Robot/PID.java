@@ -3,17 +3,18 @@ package Robot;
 import java.util.Date;
 
 public class PID {
-	private static final int TARGET = 0;
 	private static final double P_COEFF = 45;	// 45
 	private static final double I_COEFF = 4.5;	// 4.5
 	private static final double D_COEFF = 450;	// 450
 	private static final int N_ERRORS = 5;
 	
+	private int target;
 	private double[] lastErrors = new double[N_ERRORS];
 	private double integral;
 	private int maxDelta;
 	
-	public PID(int maxDelta) {
+	public PID(int target, int maxDelta) {
+		this.target = target;
 		this.maxDelta = maxDelta;
 	}
 
@@ -22,7 +23,7 @@ public class PID {
 		double leftSpeed, rightSpeed, error, derivative, correction;
 
 		double constrainedDelta = delta > maxDelta ? maxDelta : delta;	// Evito valori fuori scala
-		error = (TARGET + constrainedDelta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
+		error = (target + constrainedDelta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
 		
 		integral = 0;
 		for (int i = 0; i < lastErrors.length; i++) {

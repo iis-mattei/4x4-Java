@@ -13,12 +13,12 @@ public class Motors {
 	public static final double INT_AXIS = 12.4;
 	public static final double EXT_AXIS = 16.4;
 	public static final double DIFF_AXIS = EXT_AXIS - INT_AXIS;
-	public static final double COEFF_CM = 360 / ((double) Math.PI * WHEEL_DIAM);
+	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM);
 	public static final double COEFF_SPIN = INT_AXIS / WHEEL_DIAM;
 	public static final double WHEEL_CORRECTION = 1.0; // Modificare solo se necessario
 
-	// Posizione motori: B-> sinistro C-> destro
-	// da attivare se i motori sono nel verso giusto
+	// Motori delle ruote: B-> sinistro C-> destro
+	// Da attivare se i motori sono nel verso giusto
 	private RegulatedMotor MA = Motor.A;
 //	private RegulatedMotor MB = Motor.B;
 //	private RegulatedMotor MC = Motor.C;
