@@ -49,7 +49,8 @@ void loop() {
   if(rescueLine) {
     sensors->readAllColors();
     // sensors->debugColors();
-    lSilver = digitalRead(SILVER);    
+    lSilver = digitalRead(SILVER);  
+    //Serial.println(lSilver)  ;
   }
 }
 

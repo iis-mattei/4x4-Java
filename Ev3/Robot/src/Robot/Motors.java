@@ -8,13 +8,15 @@ import lejos.robotics.RegulatedMotor;
 
 public class Motors {
 	public static final int BASE_SPEED = 40; // Scala 0-100
-	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
-	public static final double WHEEL_DIAM = 3.0;
-	public static final double INT_AXIS = 12.4;
-	public static final double EXT_AXIS = 16.4;
+	public static final int MAX_SPEED = 80; // Oltre i motori diventano imprecisi
+	public static final double WHEEL_DIAM = 3.2;
+	public static final double INT_AXIS = 14.2;
+	public static final double EXT_AXIS = 16.2;
+	public static final double WHEELS_DISTANCE = 10.5;
 	public static final double DIFF_AXIS = EXT_AXIS - INT_AXIS;
-	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM);	// conversione da cm a gradi
-	public static final double COEFF_SPIN = INT_AXIS / WHEEL_DIAM;	// conversione da gradi di spin a gradi di rotazione ruote
+	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM); // conversione da cm a gradi
+	public static final double COEFF_SPIN = Math.sqrt(Math.pow(EXT_AXIS, 2) + Math.pow(WHEELS_DISTANCE, 2))
+			/ WHEEL_DIAM; // conversione da gradi di spin a gradi di rotazione ruote
 	public static final double WHEEL_CORRECTION = 1.0; // Modificare solo se necessario
 
 	// Motori delle ruote: B-> sinistro C-> destro
@@ -30,11 +32,13 @@ public class Motors {
 	private RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
 //	private RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 
+	public Motors() {
+		MB.synchronizeWith(new RegulatedMotor[] { Motor.C });
+	}
+
 	// Converte la velocità 0-100 in quella effettiva dei motori
-	private int calcActualSpeed(int centVel) {
-		float voltage = Battery.getVoltage();
-		float maxSpeed = voltage * 100;
-		int actualSpeed = (int) Math.round(centVel * maxSpeed / 100);
+	private int calcActualSpeed(int speed) {
+		int actualSpeed = (int) Math.round(speed * MB.getMaxSpeed() / 100);
 		return actualSpeed;
 	}
 
@@ -93,25 +97,30 @@ public class Motors {
 
 	// arc: positivo => senso antiorario
 	public void arc(int speed, double radius, double arc, boolean noWait) {
-		double intToExtRatio = (radius + DIFF_AXIS / 2) / (radius + INT_AXIS / 2);
+		double intToExtRatio = (radius * 0.66 + DIFF_AXIS / 2) / (radius * 0.66 + INT_AXIS + DIFF_AXIS / 2);
+		MB.startSynchronization();
 		if (arc > 0) {
 			MB.setSpeed(calcActualSpeed((int) (speed * intToExtRatio)));
 			MC.setSpeed(calcActualSpeed((int) (WHEEL_CORRECTION * speed)));
 			// controllo l'arco rispetto alla ruota interna
-			MB.rotate((int) (Math.signum(speed) * arc * (radius + DIFF_AXIS / 2) * COEFF_CM * Math.PI / 180), true);
+			MB.rotate(
+					(int) (Math.signum(speed) * arc * 1.4 * (radius * 0.66 + DIFF_AXIS / 2) * COEFF_CM * Math.PI / 180),
+					true);
 			// controllo l'arco rispetto alla ruota esterna
-			MC.rotate((int) (Math.signum(speed) * arc * (radius + INT_AXIS / 2) * COEFF_CM * WHEEL_CORRECTION * Math.PI
-					/ 180), true);
+			MC.rotate((int) (Math.signum(speed) * arc * 1.4 * (radius * 0.66 + INT_AXIS + DIFF_AXIS / 2) * COEFF_CM
+					* WHEEL_CORRECTION * Math.PI / 180), true);
 		} else {
 			arc *= -1;
 			MB.setSpeed(calcActualSpeed((int) (speed)));
 			MC.setSpeed(calcActualSpeed((int) (speed * intToExtRatio * WHEEL_CORRECTION)));
 			// controllo l'arco rispetto alla ruota esterna
-			MB.rotate((int) (Math.signum(speed) * arc * (radius + INT_AXIS / 2) * COEFF_CM * Math.PI / 180), true);
+			MB.rotate((int) (Math.signum(speed) * arc * 1.4 * (radius * 0.66 + INT_AXIS + DIFF_AXIS / 2) * COEFF_CM
+					* Math.PI / 180), true);
 			// controllo l'arco rispetto alla ruota interna
-			MC.rotate((int) (Math.signum(speed) * arc * (radius + DIFF_AXIS / 2) * COEFF_CM * WHEEL_CORRECTION * Math.PI
-					/ 180), true);
+			MC.rotate((int) (Math.signum(speed) * arc * 1.4 * (radius * 0.66 + DIFF_AXIS / 2) * COEFF_CM
+					* WHEEL_CORRECTION * Math.PI / 180), true);
 		}
+		MB.endSynchronization();
 		if (!noWait)
 			while (isMoving())
 				Thread.yield();
