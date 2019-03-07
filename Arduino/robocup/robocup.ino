@@ -15,6 +15,7 @@
 Sensors *sensors;
 byte request;
 int lSilver;
+boolean rescueLine;
 
 // long dist;
 // Trigger_U_Ant_S= , Trigger_U_Post= , Trigger_U_Dx= , Trigger_U_Sx= ;
@@ -27,6 +28,7 @@ int lSilver;
 
 void setup() {
   sensors = new Sensors();
+  rescueLine = true;
   pinMode(FWD_RIGHT, INPUT_PULLUP);
   pinMode(FWD_LEFT, INPUT_PULLUP);
   pinMode(BACK_RIGHT, INPUT_PULLUP);
@@ -44,9 +46,11 @@ void setup() {
 }
 
 void loop() {
-  sensors->readAllColors();
-  // sensors->debugColors();
-  // lSilver = digitalRead(SILVER);
+  if(rescueLine) {
+    sensors->readAllColors();
+    // sensors->debugColors();
+    lSilver = digitalRead(SILVER);    
+  }
 }
 
 void receiveData(int byteCount) {
@@ -56,11 +60,13 @@ void receiveData(int byteCount) {
 }
 
 void sendData() {
-  if (request == 'B') {  // rilevazione livello del nero
+  if (request == 'B') {
+    // rilevazione livello del nero
     int blackLevel = sensors->detectBlack();
     Wire.write(lowByte(blackLevel));
     Wire.write(highByte(blackLevel));
-  } else if (request == 'C') {  // checkColors: lux + colori
+  } else if (request == 'C') {
+    // checkColors: lux + colori
     Wire.write(lowByte(sensors->getLuxLeft()));
     Wire.write(highByte(sensors->getLuxLeft()));
     Wire.write(lowByte(sensors->getLuxCenter()));
@@ -70,10 +76,8 @@ void sendData() {
     Wire.write(sensors->getColorLeft());
     Wire.write(sensors->getColorCenter());
     Wire.write(sensors->getColorRight());
-  }
-
-
-  if (request == 'T') { // tutti i 4 sensori di tocco
+  } else if (request == 'T') {
+    // tutti i 4 sensori di tocco
     if (digitalRead(FWD_RIGHT) == HIGH) {
       //Serial.println("Anteriore Destro premuto");
       Wire.write(true);
@@ -98,14 +102,25 @@ void sendData() {
     } else {
       Wire.write(false);
     }
-  }
-
-  if (request == 'S') {
+  } else if (request == 'S') {
     if (lSilver == LOW) {
       //Serial.println("Argento Trovato");
       Wire.write(true);
     } else {
       Wire.write(false);
     }
+  } else if (request == 'Z') {
+    // Imposto la modalità zona vittime
+    rescueLine = false;
+    Wire.write(true);
+  } else if (request == 'L') {
+    // Imposto la modalità seguilinea
+    rescueLine = false;
+    Wire.write(true);
   }
+
+  // if(request=='C'){
+  //   dist=U_Ant_I.ping_cm();
+  //   Wire.write(dist);
+  // }
 }
