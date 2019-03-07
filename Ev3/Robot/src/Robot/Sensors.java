@@ -65,6 +65,20 @@ public class Sensors {
 		sample = new float[spFwdLow.sampleSize()];
 	}
 	
+	public boolean setRescueLineMode() {
+		byte[] buffReadResponse = new byte[1];
+		arduino.getData('L', buffReadResponse, buffReadResponse.length);
+		boolean retval = buffReadResponse[0] != 0;
+		return retval;
+	}
+	
+	public boolean setEvacuationZoneMode() {
+		byte[] buffReadResponse = new byte[1];
+		arduino.getData('Z', buffReadResponse, buffReadResponse.length);
+		boolean retval = buffReadResponse[0] != 0;
+		return retval;
+	}
+	
 	public int detectBlack() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('B', buffReadResponse, buffReadResponse.length);

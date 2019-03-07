@@ -9,12 +9,12 @@ import lejos.robotics.RegulatedMotor;
 public class Motors {
 	public static final int BASE_SPEED = 40; // Scala 0-100
 	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
-	public static final double WHEEL_DIAM = 3.2;
+	public static final double WHEEL_DIAM = 3.0;
 	public static final double INT_AXIS = 12.4;
 	public static final double EXT_AXIS = 16.4;
 	public static final double DIFF_AXIS = EXT_AXIS - INT_AXIS;
-	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM);
-	public static final double COEFF_SPIN = INT_AXIS / WHEEL_DIAM;
+	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM);	// conversione da cm a gradi
+	public static final double COEFF_SPIN = INT_AXIS / WHEEL_DIAM;	// conversione da gradi di spin a gradi di rotazione ruote
 	public static final double WHEEL_CORRECTION = 1.0; // Modificare solo se necessario
 
 	// Motori delle ruote: B-> sinistro C-> destro
@@ -79,8 +79,8 @@ public class Motors {
 		MB.startSynchronization();
 		MB.setSpeed(calcActualSpeed(speed));
 		MC.setSpeed(calcActualSpeed((int) (speed * WHEEL_CORRECTION)));
-		MC.rotate((int) (arc * COEFF_SPIN), true);
 		MB.rotate((int) (-arc * COEFF_SPIN * (2 - WHEEL_CORRECTION)), true);
+		MC.rotate((int) (arc * COEFF_SPIN), true);
 		MB.endSynchronization();
 		if (!noWait)
 			while (isMoving())

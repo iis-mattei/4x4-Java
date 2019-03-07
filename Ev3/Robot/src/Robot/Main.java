@@ -13,6 +13,7 @@ public class Main {
 
 	static int[] speeds = new int[2];
 	static int deltaMax;
+	static long startTime;
 
 	public static void main(String args[]) {
 		init();
@@ -29,6 +30,8 @@ public class Main {
 
 		System.out.println("Premi per calibrare...");
 		Button.waitForAnyPress();
+		// Memorizzo l'istante di inizio del percorso
+		startTime = new Date().getTime();
 		int blackLevel = sensors.detectBlack();
 		sensors.checkColors();
 		deltaMax = (int) Math.round(((sensors.getLuxL() + sensors.getLuxR()) / 2) - sensors.getLuxC());
@@ -52,9 +55,10 @@ public class Main {
 				// Riavvia il ciclo principale
 				return;
 			}
-//			if (sensors.isSilver()) {
-//				evacuationZone();
-//			}
+			if (sensors.isSilver() && sensors.checkDistanceFwdHigh() < 120 && sensors.checkDistanceFwdHigh() > 70) {
+				// Passo alla modalità zona vittime
+				evacuationZone();
+			}
 
 			// Controlla se c'è un ostacolo: nel caso lo aggira
 			float distFwdLow = sensors.checkDistanceFwdLow();
@@ -148,25 +152,44 @@ public class Main {
 	}
 
 	public static void evacuationZone() {
-		// Le coordinate partono dall'angolo in basso a sinistra, come assi cartesiani
 		// zoneOrientation: 0 è larga (120x90), 1 è lunga (90x120)
 		// safePosition: 0 è l'angolo in basso a sinistra, gli altri in senso orario
-		int zoneOrientation = -1, safePosition = -1;
+		// gatePosition: da 0 a 3, da sinistra a destra
+		int zoneOrientation = -1, safePosition = -1, gatePosition = -1;
+		boolean loaded = false;
+		
+		// Passo Arduino in modalità zona vittime
+		sensors.setEvacuationZoneMode();
 
 		// Avanzo fino a far entrare tutto il robot nella zona
 		motors.travel(Motors.BASE_SPEED, 15);
 
 		// Individuo la forma della zona vittime
-		if (sensors.checkDistanceFwdHigh() < 90) {
+		if (sensors.checkDistanceFwdHigh() < 0.90) {
 			zoneOrientation = 0;
 		} else {
 			zoneOrientation = 1;
 		}
 
+		// Individuo la posizione dell'ingresso
+		float d = sensors.checkDistanceSide();
+		if (d < 0.30) {
+			gatePosition = 0;
+		} else if (d < 0.60) {
+			gatePosition = 1;
+		} else if (d < 0.90) {
+			gatePosition = 2;
+		} else {
+			gatePosition = 3;
+		}
+
 		// Faccio tutto il perimetro per trovare la zona vittime
-		// Giro a sinistra e cammino per spostarmi dall'ingresso
-		motors.spin(Motors.BASE_SPEED, 90);
-		motors.travel(Motors.BASE_SPEED, 20);
+		// Se non sono entrato dall'angolo sinistro, mi giro per seguire la parete
+		if (gatePosition > 0) {
+			// Giro a sinistra e cammino per spostarmi dall'ingresso
+			motors.spin(Motors.BASE_SPEED, 90);
+			motors.travel(Motors.BASE_SPEED, 20);
+		}
 
 		// Vado avanti fino alla parete
 		// Qui potrei usare il PID per mantenere una distanza costante dalla parete...
@@ -175,35 +198,46 @@ public class Main {
 		// Se nell'angolo c'è la zona sicura (nel caso, memorizzo la posizione)
 		pid = new PID(5, 5);
 		int sidesExplored = 0;
-		do {
-			while (sensors.checkDistanceFwdHigh() > 5) {
+		do { // Ripeto per ogni parete, finché non trovo la zona sicura
+			while (sensors.checkDistanceFwdHigh() > 5) { // Vado avanti finché non trovo la parete
 				if (sensors.isFwdLeftPressed() && sensors.isFwdRightPressed()) {
 					// Se ho toccato con i sensori senza arrivare al muro, ho trovato la zona sicura
 					safePosition = sidesExplored;
 					break;
+				} else if (sensors.isFwdLeftPressed()) {
+					// Se uno dei sensori ha toccato, faccio allineare l'altro
+					motors.drive(0, Motors.BASE_SPEED);
+				} else if (sensors.isFwdRightPressed()) {
+					motors.drive(Motors.BASE_SPEED, 0);
+				} else if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > 40) {
+					// Mi sto avvicinando a una pallina: mi fermo per raccoglierla
+					motors.travel(Motors.BASE_SPEED, -5);
+					motors.bladeLower();
+					motors.travel(Motors.BASE_SPEED, 10);
+					motors.bladeLift();
+					loaded = true;
+				} else {
+					speeds = pid.getSpeed(sensors.checkDistanceSide());
+					motors.drive(speeds[0], speeds[1]);
 				}
-				if (sensors.checkDistanceFwdLow() < 5) {
-					if (sensors.checkDistanceFwdHigh() > 15) {
-						// Mi sto avvicinando a una pallina: mi fermo per raccoglierla
-						motors.travel(Motors.BASE_SPEED, -5);
-						motors.bladeLower();
-						motors.travel(Motors.BASE_SPEED, 10);
-						motors.bladeLift();
-					} else if (sensors.isFwdLeftPressed()) {
-						// Se uno dei sensori ha toccato, faccio allineare l'altro
-						motors.drive(0, Motors.BASE_SPEED);
-					} else if (sensors.isFwdRightPressed()) {
-						motors.drive(Motors.BASE_SPEED, 0);
-					}
-
-				}
-				speeds = pid.getSpeed(sensors.checkDistanceSide());
-				motors.drive(speeds[0], speeds[1]);
 			}
-			// Giro a destra di 90 gradi e riparto
-			motors.spin(Motors.BASE_SPEED, -90);
+			if(safePosition < 0) {
+				// Se non ho trovato la zona sicura, giro a destra di 90 gradi e riparto
+				motors.spin(Motors.BASE_SPEED, -90);
+			}
 		} while (safePosition < 0 && sidesExplored < 4);
 
+		// Se abbiamo delle palline, facciamo la manovra di scarico
+		if(loaded) {
+			motors.travel(Motors.BASE_SPEED, -5);
+			motors.spin(Motors.BASE_SPEED, 180);
+			motors.travel(Motors.BASE_SPEED, -10);
+			motors.containerOpen();
+			motors.travel(Motors.BASE_SPEED, 1);
+			motors.travel(Motors.BASE_SPEED, -2);
+			motors.containerClose();
+		}
+		
 		// Una volta trovata la zona sicura, parto con 6 spazzate dal lato corto
 		// Il robot si mette in posizione per iniziare le spazzate
 		if (zoneOrientation == 0 && (safePosition == 0 || safePosition == 2)
@@ -215,7 +249,7 @@ public class Main {
 		} else {
 			motors.spin(Motors.BASE_SPEED, 135);
 		}
-		
+
 		// Ogni spazzata a circa 20cm di distanza dall'altra
 		// Uso sempre il PID per mantenere la distanza dalla parete
 		// Ad ogni spazzata raccolgo le palline e le riporto nella zona sicura
