@@ -23,7 +23,7 @@ public class PID {
 		double leftSpeed, rightSpeed, error, derivative, correction;
 
 		double constrainedDelta = delta > maxDelta ? maxDelta : delta;	// Evito valori fuori scala
-		error = (target + constrainedDelta) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
+		error = (constrainedDelta - target) * 100 / maxDelta;	// Riporto l'errore in scala 0-100
 		
 		integral = 0;
 		for (int i = 0; i < lastErrors.length; i++) {

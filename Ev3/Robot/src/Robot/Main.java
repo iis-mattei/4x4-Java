@@ -203,7 +203,7 @@ public class Main {
 		int zoneOrientation = -1, safePosition = -1, gatePosition = -1;
 		boolean loaded = false;
 
-		// Passo Arduino in modalità zona vittime
+		// Imposto Arduino in modalità zona vittime
 		sensors.setEvacuationZoneMode();
 		System.out.println("************\nZona vittime\n************");
 
@@ -244,7 +244,7 @@ public class Main {
 		// Mentre il robot cammina devo verificare:
 		// Se c'è una pallina sul percorso (nel caso, la raccolgo)
 		// Se nell'angolo c'è la zona sicura (nel caso, memorizzo la posizione)
-		pid = new PID(5, 5);
+		pid = new PID(5, 20);
 		int sidesExplored = 0;
 		do { // Ripeto per ogni parete, finché non trovo la zona sicura
 			while (sensors.checkDistanceFwdHigh() > 0.05) { // Vado avanti finché non trovo la parete
@@ -265,8 +265,9 @@ public class Main {
 					motors.bladeLift();
 					loaded = true;
 				} else {
-					speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-					motors.drive(speeds[0], speeds[1]);
+					speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+					// Devo scambiare i lati destro e sinistro del PID per curvare nel verso giusto
+					motors.drive(speeds[1], speeds[0]);
 				}
 			}
 			if (safePosition < 0) {
@@ -289,29 +290,25 @@ public class Main {
 
 		// Una volta trovata la zona sicura, parto con le spazzate in orizzontale
 		// Il robot si mette in posizione per iniziare le spazzate
-		if (safePosition == 0 || safePosition == 2) {
-			motors.spin(Motors.BASE_SPEED, -45);
-		} else {
-			motors.spin(Motors.BASE_SPEED, 45);
-		}
+		int signum = safePosition % 2 == 0 ? 1 : -1;
+		motors.spin(Motors.BASE_SPEED, -signum * 45);
 
 		// Ogni spazzata a circa 20cm di distanza dall'altra
 		// Uso sempre il PID per mantenere la distanza dalla parete
 		// Ad ogni spazzata raccolgo le palline e le riporto nella zona sicura
 		motors.bladeLower();
-		int signum = safePosition % 2 == 0 ? 1 : -1;
 		for (int i = 0; i < 3 + zoneOrientation; i++) {
 			// Percorro la zona all'andata
 			if (signum == 1) {
-				pid = new PID(75 + zoneOrientation*30 - i * 30, 5);
+				pid = new PID(75 + zoneOrientation * 30 - i * 30, 20);
 			} else {
-				pid = new PID(15 + i * 30, 5);
+				pid = new PID(15 + i * 30, 20);
 			}
-			
+
 			while (sensors.checkDistanceFwdHigh() > 0.05) {
 				// Vado avanti finché non trovo la parete
-				speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-				motors.drive(speeds[0], speeds[1]);
+				speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+				motors.drive(speeds[1], speeds[0]);
 			}
 			// Recupero eventuali palline
 			motors.bladeLift();
@@ -322,33 +319,33 @@ public class Main {
 			motors.bladeLower();
 			// Percorro la zona al ritorno
 			if (signum == 1) {
-				pid = new PID(10 + i * 30, 5);
+				pid = new PID(10 + i * 30, 20);
 			} else {
-				pid = new PID(70 + zoneOrientation*30 - i * 30, 5);
+				pid = new PID(70 + zoneOrientation * 30 - i * 30, 20);
 			}
 			while (sensors.checkDistanceFwdHigh() > 0.05) {
 				// Vado avanti finché non trovo la parete
-				speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-				motors.drive(speeds[0], speeds[1]);
+				speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+				motors.drive(speeds[1], speeds[0]);
 			}
 			// Recupero eventuali palline
 			motors.bladeLift();
 			// Manovra per scaricare
 			motors.spin(Motors.BASE_SPEED, signum * 90);
 			if (signum == 1) {
-				pid = new PID(105 - zoneOrientation*30, 5);
+				pid = new PID(105 - zoneOrientation * 30, 20);
 			} else {
-				pid = new PID(5, 5);
+				pid = new PID(5, 20);
 			}
 			// Mi appoggio alla zona sicura
-			while (sensors.isFwdLeftPressed() && sensors.isFwdRightPressed()) {
+			while (!sensors.isFwdLeftPressed() || !sensors.isFwdRightPressed()) {
 				if (sensors.isFwdLeftPressed()) {
 					motors.drive(0, Motors.BASE_SPEED);
 				} else if (sensors.isFwdRightPressed()) {
 					motors.drive(Motors.BASE_SPEED, 0);
 				} else {
-					speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-					motors.drive(speeds[0], speeds[1]);
+					speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+					motors.drive(speeds[1], speeds[0]);
 				}
 			}
 			// Scarico palline
@@ -359,7 +356,7 @@ public class Main {
 			motors.travel(Motors.BASE_SPEED, 1);
 			motors.travel(Motors.BASE_SPEED, -2);
 			motors.containerClose();
-			if(i == 2) {
+			if (i == 2 + zoneOrientation) {
 				// Se ho completato i passaggi, finisco di spazzare
 				break;
 			}
@@ -369,7 +366,7 @@ public class Main {
 			motors.travel(Motors.BASE_SPEED, 30 + i * 30);
 			motors.spin(Motors.BASE_SPEED, -signum * 90);
 		}
-		
+
 		// Uscita dalla zona vittime
 		switch (safePosition) {
 		case 0:
@@ -379,23 +376,23 @@ public class Main {
 			break;
 		case 1:
 			motors.spin(Motors.BASE_SPEED, -45);
-			pid = new PID(105 - zoneOrientation*30, 5);
+			pid = new PID(105 - zoneOrientation * 30, 20);
 			while (sensors.checkDistanceFwdHigh() > 0.05) {
-				speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-				motors.drive(speeds[0], speeds[1]);
+				speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+				motors.drive(speeds[1], speeds[0]);
 			}
 			if (gatePosition > 0) {
 				motors.spin(Motors.BASE_SPEED, 90);
 				motors.travel(Motors.BASE_SPEED, gatePosition * 30);
 				motors.spin(Motors.BASE_SPEED, -90);
-			}			
+			}
 			break;
 		case 2:
 			motors.spin(Motors.BASE_SPEED, 45);
-			pid = new PID(5, 5);
+			pid = new PID(5, 20);
 			while (sensors.checkDistanceFwdHigh() > 0.05) {
-				speeds = pid.getSpeed(sensors.checkDistanceSide()*100);
-				motors.drive(speeds[0], speeds[1]);
+				speeds = pid.getSpeed(sensors.checkDistanceSide() * 100);
+				motors.drive(speeds[1], speeds[0]);
 			}
 			if (gatePosition < 3) {
 				motors.spin(Motors.BASE_SPEED, -90);
@@ -404,12 +401,14 @@ public class Main {
 			}
 			break;
 		case 3:
+			// Possibile solo se zoneOrientation == 0
 			motors.spin(Motors.BASE_SPEED, 45);
-			motors.travel(Motors.BASE_SPEED, (3 - gatePosition - zoneOrientation) * 30);
+			motors.travel(Motors.BASE_SPEED, (3 - gatePosition) * 30);
 			motors.spin(Motors.BASE_SPEED, 90);
 			break;
 		}
 		motors.travel(Motors.BASE_SPEED, 30);
+		// Ripassa il controllo al ciclo while della lineFollower()
 		return;
 	}
 
