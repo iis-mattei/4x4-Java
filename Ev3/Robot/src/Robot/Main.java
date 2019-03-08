@@ -296,8 +296,9 @@ public class Main {
 		// Ogni spazzata a circa 20cm di distanza dall'altra
 		// Uso sempre il PID per mantenere la distanza dalla parete
 		// Ad ogni spazzata raccolgo le palline e le riporto nella zona sicura
+		// Se manca meno di un minuto esco dal ciclo e cerco l'uscita
 		motors.bladeLower();
-		for (int i = 0; i < 3 + zoneOrientation; i++) {
+		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7*60*1000); i++) {
 			// Percorro la zona all'andata
 			if (signum == 1) {
 				pid = new PID(75 + zoneOrientation * 30 - i * 30, 20);
@@ -408,6 +409,24 @@ public class Main {
 			break;
 		}
 		motors.travel(Motors.BASE_SPEED, 30);
+		boolean foundBlack = false;
+		for (int i = 0; i < 7; i++) {
+			if(sensors.isAnyBlack()) {
+				foundBlack = true;
+				break;
+			}
+			motors.spin(Motors.BASE_SPEED, 10);
+		}
+		if(!foundBlack) {
+			for (int i = 0; i < 14; i++) {
+				if(sensors.isAnyBlack()) {
+					foundBlack = true;
+					break;
+				}
+				motors.spin(Motors.BASE_SPEED, -10);
+			}
+		}
+		motors.resetTachoCount();
 		// Ripassa il controllo al ciclo while della lineFollower()
 		return;
 	}
