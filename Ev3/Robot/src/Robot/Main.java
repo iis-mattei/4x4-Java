@@ -42,7 +42,7 @@ public class Main {
 	}
 
 	public static void lineFollower() {
-		boolean greenLeft = false, greenRight = false;
+		int greenLeft = 0, greenRight = 0;
 
 		Sound.beepSequenceUp();
 		System.out.println("Premi per partire...");
@@ -53,6 +53,7 @@ public class Main {
 		while (true) {
 			if (Button.ESCAPE.isDown()) {
 				// Termina il programma
+				motors.stop();
 				motors.bladeLower();
 				motors.containerOpen();
 				System.exit(0);
@@ -127,8 +128,8 @@ public class Main {
 			case "ws":
 			case "ww":
 				// Rettilineo, azzero prenotazioni verde
-				greenLeft = false;
-				greenRight = false;
+				greenLeft = 0;
+				greenRight = 0;
 				motors.drive(speeds[0], speeds[1]);
 				break;
 
@@ -144,52 +145,52 @@ public class Main {
 				break;
 
 			case "bb":
-				if (!greenLeft && !greenRight) {
+				if (greenLeft==0 && greenRight==0) {
 					// Segui la linea
 					motors.drive(speeds[0], speeds[1]);
-				} else if (greenLeft && greenRight) {
+				} else if (greenLeft>0 && greenRight>0) {
 					// Inversione di marcia
 //					System.out.println((new Date()).getTime() + "\tInversione di marcia");
 					motors.spin(Motors.BASE_SPEED, 180);
 					motors.travel(Motors.BASE_SPEED, 5);
 					motors.resetTachoCount();
-					greenLeft = false;
-					greenRight = false;
-				} else if (greenLeft) {
+					greenLeft = 0;
+					greenRight = 0;
+				} else if (greenLeft>0) {
 					// Curva a sinistra
 //					System.out.println((new Date()).getTime() + "\tCurva a sinistra");
 					motors.travel(Motors.BASE_SPEED, 2);
 					motors.spin(Motors.BASE_SPEED, 60);
 					motors.resetTachoCount();
-					greenLeft = false;
-				} else if (greenRight) {
+					greenLeft = 0;
+				} else if (greenRight>0) {
 					// Curva a destra
 //					System.out.println((new Date()).getTime() + "\tCurva a destra");
 					motors.travel(Motors.BASE_SPEED, 2);
 					motors.spin(Motors.BASE_SPEED, -60);
 					motors.resetTachoCount();
-					greenRight = false;
+					greenRight = 0;
 				}
 				break;
 
 			case "gw":
 			case "gb":
 				// Prenoto curva a sinistra e vado dritto
-				greenLeft = true;
+				greenLeft++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 
 			case "wg":
 			case "bg":
 				// Prenoto curva a destra e vado dritto
-				greenRight = true;
+				greenRight++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 
 			case "gg":
 				// Prenoto inversione di marcia e vado dritto
-				greenLeft = true;
-				greenRight = true;
+				greenLeft++;
+				greenRight++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 			}

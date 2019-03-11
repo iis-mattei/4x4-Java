@@ -1,7 +1,5 @@
 package Robot;
 
-import java.util.Date;
-
 public class PID {
 	private static final double P_COEFF = 38;	// 45
 	private static final double I_COEFF = 7.6;	// 4.5
