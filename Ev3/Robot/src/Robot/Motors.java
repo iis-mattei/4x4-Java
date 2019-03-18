@@ -2,16 +2,15 @@ package Robot;
 
 import lejos.hardware.motor.Motor;
 import lejos.robotics.MirrorMotor;
-//import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
 
 public class Motors {
-	public static final int BASE_SPEED = 40; // Scala 0-100
-	public static final int MAX_SPEED = 80; // Oltre i motori diventano imprecisi
+	public static final int BASE_SPEED = 30; // Scala 0-100
+	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
 	public static final double WHEEL_DIAM = 3.2;
-	public static final double INT_AXIS = 14.7;
-	public static final double EXT_AXIS = 16.7;
-	public static final double WHEELS_DISTANCE = 9.5;
+	public static final double INT_AXIS = 12.2;
+	public static final double EXT_AXIS = 16.2;
+	public static final double WHEELS_DISTANCE = 8.8;
 	public static final double DIFF_AXIS = EXT_AXIS - INT_AXIS;
 	public static final double COEFF_CM = 360 / (Math.PI * WHEEL_DIAM); // conversione da cm a gradi
 	public static final double COEFF_SPIN = Math.sqrt(Math.pow(EXT_AXIS, 2) + Math.pow(WHEELS_DISTANCE, 2))
@@ -20,7 +19,7 @@ public class Motors {
 
 	// Motori delle ruote: B-> sinistro C-> destro
 	// Da attivare se i motori sono nel verso giusto
-	private RegulatedMotor MA = Motor.A;
+//	private RegulatedMotor MA = Motor.A;
 //	private RegulatedMotor MB = Motor.B;
 //	private RegulatedMotor MC = Motor.C;
 	private RegulatedMotor MD = Motor.D;
@@ -132,30 +131,30 @@ public class Motors {
 	// Alza la pinza
 	public void bladeLift() {
 		MD.setSpeed(120);
-		MD.rotate(210);
+		MD.rotate(280);
 		MD.stop();
 	}
 
 	// Abbassa la pinza
 	public void bladeLower() {
 		MD.setSpeed(120);
-		MD.rotate(-200);
+		MD.rotate(-280);
 		MD.stop();
 	}
-
-	// Apri il portapalline
-	public void containerOpen() {
-		MA.setSpeed(120);
-		MA.rotate(130);
-		MA.stop();
-	}
-
-	// Chiudi il portapalline
-	public void containerClose() {
-		MA.setSpeed(120);
-		MA.rotate(-130);
-		MA.stop();
-	}
+//
+//	// Apri il portapalline
+//	public void containerOpen() {
+//		MA.setSpeed(120);
+//		MA.rotate(130);
+//		MA.stop();
+//	}
+//
+//	// Chiudi il portapalline
+//	public void containerClose() {
+//		MA.setSpeed(120);
+//		MA.rotate(-130);
+//		MA.stop();
+//	}
 
 	public boolean isMoving() {
 		return (MC.isMoving() || MB.isMoving());

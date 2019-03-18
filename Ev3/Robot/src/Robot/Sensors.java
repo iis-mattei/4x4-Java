@@ -7,12 +7,12 @@ import lejos.robotics.SampleProvider;
 
 public class Sensors {
 	private final int I2CSlaveAddress = 8;
-	private EV3UltrasonicSensor usFwdLow;
-	private EV3UltrasonicSensor usFwdHigh;
-	private EV3UltrasonicSensor usSide;
-	private SampleProvider spFwdLow, spFwdHigh, spSide;
-	private float[] sample;
-	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
+//	private EV3UltrasonicSensor usFwdLow;
+//	private EV3UltrasonicSensor usFwdHigh;
+//	private EV3UltrasonicSensor usSide;
+//	private SampleProvider spFwdLow, spFwdHigh, spSide;
+//	private float[] sample;
+	private I2CSensor arduino = new I2CSensor(SensorPort.S1, I2CSlaveAddress);
 	
 	private String colorsLR, colorC;
 	private int luxL, luxC, luxR;
@@ -23,46 +23,46 @@ public class Sensors {
 	}
 	
 	public Sensors() {
-		boolean sensorOk = false;
-		do {
-			try {
-				usFwdLow = new EV3UltrasonicSensor(SensorPort.S1);
-				sensorOk = true;
-			} catch (Exception e) {
-				System.out.println("Errore ultrasuoni S1...");
-				sensorOk = false;
-			}
-		} while (!sensorOk);
-		System.out.println("S1 OK");
-		
-		sensorOk = false;
-		do {
-			try {
-				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
-				sensorOk = true;
-			} catch (Exception e) {
-				System.out.println("Errore ultrasuoni S2...");
-				sensorOk = false;
-			}
-		} while (!sensorOk);
-		System.out.println("S2 OK");
-		
-		sensorOk = false;
-		do {
-			try {
-				usSide = new EV3UltrasonicSensor(SensorPort.S3);
-				sensorOk = true;
-			} catch (Exception e) {
-				System.out.println("Errore ultrasuoni S3...");
-				sensorOk = false;
-			}
-		} while (!sensorOk);
-		System.out.println("S3 OK");
-		
-		spFwdLow = usFwdLow.getDistanceMode();
-		spFwdHigh = usFwdHigh.getDistanceMode();
-		spSide = usSide.getDistanceMode();
-		sample = new float[spFwdLow.sampleSize()];
+//		boolean sensorOk = false;
+//		do {
+//			try {
+//				usFwdLow = new EV3UltrasonicSensor(SensorPort.S1);
+//				sensorOk = true;
+//			} catch (Exception e) {
+//				System.out.println("Errore ultrasuoni S1...");
+//				sensorOk = false;
+//			}
+//		} while (!sensorOk);
+//		System.out.println("S1 OK");
+//		
+//		sensorOk = false;
+//		do {
+//			try {
+//				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
+//				sensorOk = true;
+//			} catch (Exception e) {
+//				System.out.println("Errore ultrasuoni S2...");
+//				sensorOk = false;
+//			}
+//		} while (!sensorOk);
+//		System.out.println("S2 OK");
+//		
+//		sensorOk = false;
+//		do {
+//			try {
+//				usSide = new EV3UltrasonicSensor(SensorPort.S3);
+//				sensorOk = true;
+//			} catch (Exception e) {
+//				System.out.println("Errore ultrasuoni S3...");
+//				sensorOk = false;
+//			}
+//		} while (!sensorOk);
+//		System.out.println("S3 OK");
+//		
+//		spFwdLow = usFwdLow.getDistanceMode();
+//		spFwdHigh = usFwdHigh.getDistanceMode();
+//		spSide = usSide.getDistanceMode();
+//		sample = new float[spFwdLow.sampleSize()];
 	}
 	
 	public boolean setRescueLineMode() {
@@ -154,21 +154,21 @@ public class Sensors {
 		silver = buffReadResponse[0] != 0;
 		return silver;
 	}
-	
-	public float checkDistanceFwdLow() {
-		spFwdLow.fetchSample(sample, 0);
-		return sample[0];
-	}
-	
-	public float checkDistanceFwdHigh() {
-		spFwdHigh.fetchSample(sample, 0);
-		return sample[0];
-	}
-	
-	public float checkDistanceSide() {
-		spSide.fetchSample(sample, 0);
-		return sample[0];
-	}
+//	
+//	public float checkDistanceFwdLow() {
+//		spFwdLow.fetchSample(sample, 0);
+//		return sample[0];
+//	}
+//	
+//	public float checkDistanceFwdHigh() {
+//		spFwdHigh.fetchSample(sample, 0);
+//		return sample[0];
+//	}
+//	
+//	public float checkDistanceSide() {
+//		spSide.fetchSample(sample, 0);
+//		return sample[0];
+//	}
 
 	// public int U_Ant_I(){
 	// arduino.getData('C', buffReadResponse, buffReadResponse.length);

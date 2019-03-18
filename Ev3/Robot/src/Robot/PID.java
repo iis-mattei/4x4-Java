@@ -1,5 +1,7 @@
 package Robot;
 
+import java.util.Date;
+
 public class PID {
 	private static final double P_COEFF = 38;	// 45
 	private static final double I_COEFF = 7.6;	// 4.5
@@ -59,13 +61,13 @@ public class PID {
 		}
 		lastErrors[0] = error;
 
-//		System.out.print((new Date()).getTime());
-//		System.out.print(" - Delta: " + Math.round(delta));
-//		System.out.print("\tP: " + Math.round(P_COEFF * error / 100));
-//		System.out.print("\tI: " + Math.round(I_COEFF * integral / 100));
-//		System.out.print("\tD: " + Math.round(D_COEFF * derivative / 100));
-//		System.out.print("\tCorr: " + Math.round(correction));
-//		System.out.println("\tL: " + speeds[0] + "\tR: " + speeds[1]);
+		System.out.print((new Date()).getTime());
+		System.out.print(" - Delta: " + Math.round(delta));
+		System.out.print("\tP: " + Math.round(P_COEFF * error / 100));
+		System.out.print("\tI: " + Math.round(I_COEFF * integral / 100));
+		System.out.print("\tD: " + Math.round(D_COEFF * derivative / 100));
+		System.out.print("\tCorr: " + Math.round(correction));
+		System.out.println("\tL: " + speeds[0] + "\tR: " + speeds[1]);
 
 		return speeds;
 	}
