@@ -29,7 +29,8 @@ public class Main {
 		// All'inizio la pinza è abbassata: la alza e la lascia bloccata in alto
 		motors.bladeLift();
 //		motors.containerClose();
-		\
+		
+		
 		Sound.beepSequenceUp();
 		System.out.println("Premi per calibrare...");
 		Button.waitForAnyPress();

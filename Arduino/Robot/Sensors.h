@@ -1,5 +1,6 @@
 #include <SoftwareWire.h>
 #include <Adafruit_TCS34725.h>
+#include <MPU6050.h>
 
 #define TCAADDR 0x70
 #define CSLAddr 2
