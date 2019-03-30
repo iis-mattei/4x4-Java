@@ -3,9 +3,9 @@ package Robot;
 import java.util.Date;
 
 public class PID {
-	private static final double P_COEFF = 38;	// 45
-	private static final double I_COEFF = 7.6;	// 4.5
-	private static final double D_COEFF = 380;	// 450
+	private static final double P_COEFF = 45;	// 45
+	private static final double I_COEFF = 4.5;	// 4.5
+	private static final double D_COEFF = 500;	// 450
 	private static final int N_ERRORS = 5;
 	
 	private int target;

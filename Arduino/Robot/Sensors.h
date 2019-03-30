@@ -1,6 +1,6 @@
 #include <SoftwareWire.h>
 #include <Adafruit_TCS34725.h>
-#include <MPU6050.h>
+//#include <MPU6050_4x4.h>
 
 #define TCAADDR 0x70
 #define CSLAddr 2
@@ -20,16 +20,24 @@ public:
 	int getLuxCenter();
 	int getLuxLeft();
 	int getLuxRight();
+	// void calibrateGyroSensor();
+	// void readGyroSensor();
+	// void updateGyroSensor();
+	// float getGyroX();
+	// float getGyroY();		// salite
+	// float getGyroZ();		// zona vittime
 	void debugColors();
 
 private:
 	static const int RED = 0, GREEN = 1, BLUE = 2;
 	static const float GREEN_MULTIPLIER;
 	Adafruit_TCS34725 colorSensorL, colorSensorR, colorSensorC;
+	//MPU6050 *mpu6050;
 	int colorsLeft[3], colorsCenter[3], colorsRight[3];
+	//float gyro[3];
 	int luxLeft, luxCenter, luxRight;
 	int blackMax, whiteMax;
 	void tcaSelect(uint8_t addr);
 	char getColorID(int colors[], int lux);
-	void readSensor(Adafruit_TCS34725& colorSensor, uint8_t addr, int (&colors)[3], int &lux);
+	void readColorSensor(Adafruit_TCS34725& colorSensor, uint8_t addr, int (&colors)[3], int &lux);
 };

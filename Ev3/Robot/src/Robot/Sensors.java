@@ -4,6 +4,7 @@ import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.I2CSensor;
 import lejos.robotics.SampleProvider;
+import lejos.utility.*;
 
 public class Sensors {
 	private final int I2CSlaveAddress = 8;
@@ -13,15 +14,19 @@ public class Sensors {
 //	private SampleProvider spFwdLow, spFwdHigh, spSide;
 //	private float[] sample;
 	private I2CSensor arduino = new I2CSensor(SensorPort.S1, I2CSlaveAddress);
-	
+
 	private String colorsLR, colorC;
-	private int luxL, luxC, luxR;
+	private int luxL, luxC, luxR, GyroX, GyroY, GyroZ;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft, silver;
-	
+
 	private int uintToInt(byte lsb, byte msb) {
-		return (int)((lsb & 0xFF) | ((msb & 0x7F) << 8));
+		return (int) ((lsb & 0xFF) | ((msb & 0x7F) << 8));
 	}
 	
+	private int reassembleInt(byte lsb, byte msb) {
+		return (int) (((short)lsb & 0xFF) | (((short)msb & 0xFF) << 8));
+	}
+
 	public Sensors() {
 //		boolean sensorOk = false;
 //		do {
@@ -64,27 +69,27 @@ public class Sensors {
 //		spSide = usSide.getDistanceMode();
 //		sample = new float[spFwdLow.sampleSize()];
 	}
-	
+
 	public boolean setRescueLineMode() {
 		byte[] buffReadResponse = new byte[1];
 		arduino.getData('L', buffReadResponse, buffReadResponse.length);
 		boolean retval = buffReadResponse[0] != 0;
 		return retval;
 	}
-	
+
 	public boolean setEvacuationZoneMode() {
 		byte[] buffReadResponse = new byte[1];
 		arduino.getData('Z', buffReadResponse, buffReadResponse.length);
 		boolean retval = buffReadResponse[0] != 0;
 		return retval;
 	}
-	
+
 	public int detectBlack() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('B', buffReadResponse, buffReadResponse.length);
 		return uintToInt(buffReadResponse[0], buffReadResponse[1]);
 	}
-	
+
 	public void checkColors() {
 		byte[] buffReadResponse = new byte[9];
 		arduino.getData('C', buffReadResponse, buffReadResponse.length);
@@ -98,31 +103,31 @@ public class Sensors {
 	public String getColorsLR() {
 		return colorsLR;
 	}
-	
+
 	public String getColorC() {
 		return colorC;
 	}
-	
+
 	public boolean isAnyBlack() {
-		return ( colorC.equals("b") || colorsLR.equals("bn") || colorsLR.equals("nb") );
+		return (colorC.equals("b") || colorsLR.equals("bn") || colorsLR.equals("nb"));
 	}
-	
+
 	public int getDelta() {
 		return (luxL - luxR);
 	}
-	
+
 	public int getLuxL() {
 		return luxL;
 	}
-	
+
 	public int getLuxC() {
 		return luxC;
 	}
-	
+
 	public int getLuxR() {
 		return luxR;
 	}
-	
+
 	public void checkTouches() {
 		byte[] buffReadResponse = new byte[4];
 		arduino.getData('T', buffReadResponse, buffReadResponse.length);
@@ -170,10 +175,33 @@ public class Sensors {
 //		return sample[0];
 //	}
 
-	// public int U_Ant_I(){
-	// arduino.getData('C', buffReadResponse, buffReadResponse.length);
-	// dist = (int) buffReadResponse[0];
-	// return dist;
-	// }
+	public int checkDistance() {
+		byte[] buffReadResponse = new byte[2];
+		arduino.getData('D', buffReadResponse, buffReadResponse.length);
+		int dist  = uintToInt(buffReadResponse[0], buffReadResponse[1]);
+		return dist;
+	}
+	
+	public void checkGyro() {
+		byte[] buffReadResponse = new byte[6];
+		arduino.getData('G', buffReadResponse, buffReadResponse.length);
+		GyroX = EndianTools.decodeShortLE(buffReadResponse, 0);
+		GyroY = EndianTools.decodeShortLE(buffReadResponse, 2);
+		GyroZ = EndianTools.decodeShortLE(buffReadResponse, 4);
+	}
+	
+	public int getGyroX() {
+		return GyroX;
+	}
+	
+	public int getGyroY() {
+		return GyroY;
+	}
+	
+	public int getGyroZ() {
+		return GyroZ;
+	}
+	
+	
 
 }

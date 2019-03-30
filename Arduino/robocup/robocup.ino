@@ -1,126 +1,49 @@
-#include <Wire.h>
+#include <Motors.h>
 #include <Sensors.h>
-#include <NewPing.h>
 
-#define SLAVE_ADDRESS 0x04
-#define FWD_RIGHT 12
-#define FWD_LEFT 11
-#define BACK_RIGHT 10
-#define BACK_LEFT 9
-#define SILVER 8
-#define Trigger 7
-#define Echo 6
-#define Max_Distance 150
+#define S_START 1
+#define S_FORWARD 2
+#define S_TURN_LEFT 3
+#define S_TURN_RIGHT 4
+#define SPEED_STD 70
 
+int status = S_START;
+Motors *motors;
 Sensors *sensors;
-byte request;
-int lSilver;
-boolean rescueLineMode;
-NewPing ultra(Trigger, Echo, Max_Distance);
-
 
 void setup() {
-  sensors = new Sensors();
-  rescueLineMode = true;
-  pinMode(FWD_RIGHT, INPUT_PULLUP);
-  pinMode(FWD_LEFT, INPUT_PULLUP);
-  pinMode(BACK_RIGHT, INPUT_PULLUP);
-  pinMode(BACK_LEFT, INPUT_PULLUP);
-  pinMode(SILVER, INPUT_PULLUP);
   Serial.begin(9600);
-  Wire.begin(SLAVE_ADDRESS);
-  Wire.onReceive(receiveData);
-  Wire.onRequest(sendData);
-  Serial.println("Ready!");
-  // Per il test dei sensori di colore
-  // sensors->readAllColors();
-  // int blackLevel = sensors->detectBlack();
-  // Serial.println(blackLevel);
+  Serial.println("Avvio del robot...");  
+  motors = new Motors();
+  sensors = new Sensors();
 }
 
 void loop() {
-  if(rescueLineMode) {
-    sensors->readAllColors();
-    
-    sensors->debugColors();
-    lSilver = digitalRead(SILVER);  
-    //Serial.println(lSilver)  ;
-  }
-}
-
-void receiveData(int byteCount) {
-  while (Wire.available() > 0) {
-    request = Wire.read();
-  }
-}
-
-/*
- * Comandi per il dialogo con Arduino:
- * B = rilevazione del livello del nero
- * C = checkColors: lux + colori di tutti i sensori
- * D = misurazione distanza con sensore a ultrasuoni
- * T = tutti i 4 sensori di tocco
- * S = controllo argento
- * Z = attiva modalità zona vittime
- * L = attiva modalità seguilinea
- */
-void sendData() {
-  if (request == 'B') {
-    int blackLevel = sensors->detectBlack();
-    Wire.write(lowByte(blackLevel));
-    Wire.write(highByte(blackLevel));
-  } else if (request == 'C') {
-    Wire.write(lowByte(sensors->getLuxLeft()));
-    Wire.write(highByte(sensors->getLuxLeft()));
-    Wire.write(lowByte(sensors->getLuxCenter()));
-    Wire.write(highByte(sensors->getLuxCenter()));
-    Wire.write(lowByte(sensors->getLuxRight()));
-    Wire.write(highByte(sensors->getLuxRight()));
-    Wire.write(sensors->getColorLeft());
-    Wire.write(sensors->getColorCenter());
-    Wire.write(sensors->getColorRight());
-  } else if(request == 'D'){
-     long dist = ultra.ping_cm();
-     Wire.write(dist);
-  } else if (request == 'T') {
-    if (digitalRead(FWD_RIGHT) == HIGH) {
-      //Serial.println("Anteriore Destro premuto");
-      Wire.write(true);
-    } else {
-      Wire.write(false);
-    }
-    if (digitalRead(FWD_LEFT) == HIGH) {
-      //Serial.println("Anteriore Sinistro premuto");
-      Wire.write(true);
-    } else {
-      Wire.write(false);
-    }
-    if (digitalRead(BACK_RIGHT) == HIGH) {
-      //Serial.println("Posteriore Destro premuto");
-      Wire.write(true);
-    } else {
-      Wire.write(false);
-    }
-    if (digitalRead(BACK_LEFT) == HIGH) {
-      //Serial.println("Posteriore Sinistro premuto");
-      Wire.write(true);
-    } else {
-      Wire.write(false);
-    }
-  } else if (request == 'S') {
-    if (lSilver == LOW) {
-      //Serial.println("Argento Trovato");
-      Wire.write(true);
-    } else {
-      Wire.write(false);
-    }
-  } else if (request == 'Z') {
-    // Imposto la modalità zona vittime
-    rescueLineMode = false;
-    Wire.write(true);
-  } else if (request == 'L') {
-    // Imposto la modalità seguilinea
-    rescueLineMode = true;
-    Wire.write(true);
+  char colL = sensors->getColorLeft();
+  char colC = sensors->getColorCenter();
+  char colR = sensors->getColorRight();
+  if(status == S_START) {
+  	if(colL == COL_WHITE && colC == COL_BLACK && colR == COL_WHITE) {	// Vai dritto
+  		status = S_FORWARD;
+  		motors->travel(SPEED_STD);
+  	}
+  } else if(status == S_FORWARD) {
+  	if(colL == COL_WHITE && colC == COL_WHITE && colR == COL_BLACK) {	// Curva a destra
+  		status = S_TURN_RIGHT;
+  		motors->spin(SPEED_STD, -1);
+  	} else if(colL == COL_BLACK && colC == COL_WHITE && colR == COL_WHITE) {	// Curva a sinistra
+  		status = S_TURN_LEFT;
+  		motors->spin(SPEED_STD, 1);
+  	}
+  } else if(status == S_TURN_LEFT) {
+  	if(colL == COL_WHITE && colR == COL_WHITE) {	// Vai dritto
+  		status = S_FORWARD;
+  		motors->travel(SPEED_STD);
+  	}
+  } else if(status == S_TURN_RIGHT) {
+  	if(colL == COL_WHITE && colR == COL_WHITE) {	// Vai dritto
+  		status = S_FORWARD;
+  		motors->travel(SPEED_STD);
+  	}
   }
 }
