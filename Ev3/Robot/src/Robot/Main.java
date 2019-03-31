@@ -8,7 +8,7 @@ public class Main {
 	static final float OBSTACLE_DIST = 0.05f; // In metri
 	static final int NO_BLACK_DIST = 25; // In cm
 
-	static Sensors sensors = new Sensors();
+	static Sensors sensors = new Sensors(); 
 	static Motors motors = new Motors();
 	static PID pid;
 
@@ -130,8 +130,8 @@ public class Main {
 			case "ws":
 			case "ww":
 				// Rettilineo, azzero prenotazioni verde
-				greenLeft--;
-				greenRight--;
+				greenLeft=0;
+				greenRight=0;
 				motors.drive(speeds[0], speeds[1]);
 				break;
 
