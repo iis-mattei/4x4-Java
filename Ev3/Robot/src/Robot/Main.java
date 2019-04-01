@@ -5,7 +5,7 @@ import lejos.hardware.Button;
 import lejos.hardware.Sound;
 
 public class Main {
-	static final float OBSTACLE_DIST = 0.05f; // In metri
+	static final int OBSTACLE_DIST = 5; // In cm
 	static final int NO_BLACK_DIST = 25; // In cm
 
 	static Sensors sensors = new Sensors(); 
@@ -18,18 +18,15 @@ public class Main {
 
 	public static void main(String args[]) {
 		init();
-
 		while (true) {
 			lineFollower();
 		}
-
 	}
 
 	public static void init() {
 		// All'inizio la pinza è abbassata: la alza e la lascia bloccata in alto
 		motors.bladeLift();
 //		motors.containerClose();
-		
 		
 		Sound.beepSequenceUp();
 		System.out.println("Premi per calibrare...");
@@ -52,6 +49,10 @@ public class Main {
 		System.out.println("\n***************Sto partendo...");
 
 		while (true) {
+			sensors.checkGyro();
+			System.out.println("GyroX = " + sensors.getGyroX());
+			System.out.println("GyroY = " + sensors.getGyroY());
+			System.out.println("GyroZ = " + sensors.getGyroZ());
 			if (Button.ESCAPE.isDown()) {
 				// Termina il programma
 				motors.stop();
@@ -63,49 +64,49 @@ public class Main {
 				// Riavvia il ciclo principale
 				return;
 			}
-//			if (sensors.isSilver() && (sensors.checkDistanceFwdHigh() < 120 || sensors.checkDistanceFwdHigh() > 70)) {
-//				// Passo alla modalità zona vittime
-//				evacuationZone();
-//				sensors.setRescueLineMode();
-//			}
+			if (sensors.isSilver() && (sensors.checkDistanceFwdHigh() < 120 || sensors.checkDistanceFwdHigh() > 70)) {
+//				 Passo alla modalità zona vittime
+				evacuationZone();
+				sensors.setRescueLineMode();
+			}
 
 			// Controlla se c'è un ostacolo: nel caso lo aggira
-//			float distFwdLow = sensors.checkDistanceFwdLow();
-//			if (distFwdLow < OBSTACLE_DIST) {
-//				if (sensors.getColorsLR().equals("wb")) {
-//					while (!sensors.getColorsLR().equals("ww")) {
-//						motors.spin(Motors.BASE_SPEED, 10);
-//						sensors.checkColors();
-//					}
-//				} else if (sensors.getColorsLR().equals("bw")) {
-//					while (!sensors.getColorsLR().equals("ww")) {
-//						motors.spin(Motors.BASE_SPEED, -10);
-//						sensors.checkColors();
-//					}
-//				}
-//				System.out.println((new Date()).getTime() + "\tAggiramento ostacolo");
-//				motors.spin(Motors.BASE_SPEED, -90);
-//				float obstacleDist = sensors.checkDistanceSide();
-//				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
-//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-//				}
-//				motors.travel(Motors.BASE_SPEED, 10);
-//				motors.spin(Motors.BASE_SPEED, 90);
-//				motors.travel(Motors.BASE_SPEED, 10);
-//				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
-//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-//				}
-//				motors.travel(Motors.BASE_SPEED, 10);
-//				motors.spin(Motors.BASE_SPEED, 90);
-//				sensors.checkColors();
-//				while (!sensors.isAnyBlack()) {
-//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-//					sensors.checkColors();
-//				}
-//				motors.spin(Motors.BASE_SPEED, -45);
-//				motors.resetTachoCount();
-//				continue;
-//			}
+			float distFwdLow = sensors.checkDistanceFwdLow();
+			if (distFwdLow < OBSTACLE_DIST && distFwdLow > 0) {
+				if (sensors.getColorsLR().equals("wb")) {
+					while (!sensors.getColorsLR().equals("ww")) {
+						motors.spin(Motors.BASE_SPEED, 10);
+						sensors.checkColors();
+					}
+				} else if (sensors.getColorsLR().equals("bw")) {
+					while (!sensors.getColorsLR().equals("ww")) {
+						motors.spin(Motors.BASE_SPEED, -10);
+						sensors.checkColors();
+					}
+				}
+				System.out.println((new Date()).getTime() + "\tAggiramento ostacolo");
+				motors.spin(Motors.BASE_SPEED, -90);
+				float obstacleDist = sensors.checkDistanceSide();
+				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+				}
+				motors.travel(Motors.BASE_SPEED, 10);
+				motors.spin(Motors.BASE_SPEED, 90);
+				motors.travel(Motors.BASE_SPEED, 10);
+				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+				}
+				motors.travel(Motors.BASE_SPEED, 10);
+				motors.spin(Motors.BASE_SPEED, 90);
+				sensors.checkColors();
+				while (!sensors.isAnyBlack()) {
+					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+					sensors.checkColors();
+				}
+				motors.spin(Motors.BASE_SPEED, -45);
+				motors.resetTachoCount();
+				continue;
+			}
 
 			sensors.checkColors();
 			System.out.println((new Date()).getTime() + " - Colors LR: " + sensors.getColorsLR());
@@ -115,11 +116,12 @@ public class Main {
 			if (sensors.isAnyBlack()) {
 				motors.resetTachoCount();
 			} else if (motors.getTachoCount() > NO_BLACK_DIST * Motors.COEFF_CM) {
+				motors.travel(-Motors.BASE_SPEED, 30);
 				// Se necessario, attiva la procedura per ritrovare la linea nera
-				while (!sensors.isAnyBlack()) {
-					motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
-					sensors.checkColors();
-				}
+//				while (!sensors.isAnyBlack()) {
+//					motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
+//					sensors.checkColors();
+//				}
 			}
 
 			// Seguilinea con il PID
@@ -130,8 +132,12 @@ public class Main {
 			case "ws":
 			case "ww":
 				// Rettilineo, azzero prenotazioni verde
-				greenLeft=0;
-				greenRight=0;
+				if(greenLeft > 0) {
+					greenLeft--;
+				}
+				if(greenRight > 0) {
+					greenRight--;
+				}
 				motors.drive(speeds[0], speeds[1]);
 				break;
 
@@ -147,25 +153,34 @@ public class Main {
 				break;
 
 			case "bb":
-				if (greenLeft==0 && greenRight==0) {
+				if (greenLeft == 0 && greenRight == 0) {
 					// Segui la linea
 					motors.drive(speeds[0], speeds[1]);
-				} else if (greenLeft>0 && greenRight>0) {
+				} else if (greenLeft > 0 && greenRight > 0) {
 					// Inversione di marcia
 //					System.out.println((new Date()).getTime() + "\tInversione di marcia");
-					motors.spin(Motors.BASE_SPEED, 180);
+//					motors.spin(Motors.BASE_SPEED, 180);
+					motors.stop();
+					sensors.checkGyro();
+					int zStart = sensors.getGyroZ();
+					int z = 0;
+					do {
+						motors.drive(Motors.BASE_SPEED, -Motors.BASE_SPEED);
+						sensors.checkGyro();
+						z = sensors.getGyroZ();
+					} while(z < zStart + 180);
 					motors.travel(Motors.BASE_SPEED, 5);
 					motors.resetTachoCount();
 					greenLeft = 0;
 					greenRight = 0;
-				} else if (greenLeft>0) {
+				} else if (greenLeft > 0) {
 					// Curva a sinistra
 //					System.out.println((new Date()).getTime() + "\tCurva a sinistra");
 					motors.travel(Motors.BASE_SPEED, 2);
 					motors.spin(Motors.BASE_SPEED, 60);
 					motors.resetTachoCount();
 					greenLeft = 0;
-				} else if (greenRight>0) {
+				} else if (greenRight > 0) {
 					// Curva a destra
 //					System.out.println((new Date()).getTime() + "\tCurva a destra");
 					motors.travel(Motors.BASE_SPEED, 2);
@@ -199,7 +214,9 @@ public class Main {
 		}
 	}
 
-//	public static void evacuationZone() {
+	public static void evacuationZone() {
+		System.out.println("Zona Vittime");
+		System.exit(0);
 //		// zoneOrientation: 0 è larga (120x90), 1 è lunga (90x120)
 //		// safePosition: 0 è l'angolo in basso a sinistra, gli altri in senso orario
 //		// gatePosition: da 0 a 3, da sinistra a destra
@@ -432,6 +449,6 @@ public class Main {
 //		motors.resetTachoCount();
 //		// Ripassa il controllo al ciclo while della lineFollower()
 //		return;
-//	}
+	}
 
 }

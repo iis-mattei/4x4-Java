@@ -30,10 +30,12 @@ public class Test {
 	public static void main(String[] args) throws InterruptedException {
 		while(true) {
 		sensors.checkGyro();
-		System.out.println(sensors.getGyroX());
-		System.out.println(sensors.getGyroY());
-		System.out.println(sensors.getGyroZ());
-		Thread.sleep(500);
+		System.out.print("X: "+sensors.getGyroX()+" ");
+		System.out.print("Y: "+sensors.getGyroY()+" ");
+		System.out.println("Z:"+sensors.getGyroZ());
+		System.out.println("D: "+sensors.checkDistanceFwdLow());
+		System.out.println("A: "+sensors.isSilver());
+		Thread.sleep(1000);
 		}
 		// TODO Auto-generated method stub
 //		containerOpen();

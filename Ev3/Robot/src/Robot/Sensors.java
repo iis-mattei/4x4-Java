@@ -8,66 +8,48 @@ import lejos.utility.*;
 
 public class Sensors {
 	private final int I2CSlaveAddress = 8;
-//	private EV3UltrasonicSensor usFwdLow;
-//	private EV3UltrasonicSensor usFwdHigh;
-//	private EV3UltrasonicSensor usSide;
-//	private SampleProvider spFwdLow, spFwdHigh, spSide;
-//	private float[] sample;
-	private I2CSensor arduino = new I2CSensor(SensorPort.S1, I2CSlaveAddress);
+	private EV3UltrasonicSensor usFwdHigh;
+	private EV3UltrasonicSensor usSide;
+	private SampleProvider spFwdHigh, spSide;
+	private float[] sample;
+	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
 
 	private String colorsLR, colorC;
 	private int luxL, luxC, luxR, GyroX, GyroY, GyroZ;
-	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft, silver;
+	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft;
 
 	private int uintToInt(byte lsb, byte msb) {
 		return (int) ((lsb & 0xFF) | ((msb & 0x7F) << 8));
 	}
-	
-	private int reassembleInt(byte lsb, byte msb) {
-		return (int) (((short)lsb & 0xFF) | (((short)msb & 0xFF) << 8));
-	}
 
-	public Sensors() {
-//		boolean sensorOk = false;
-//		do {
-//			try {
-//				usFwdLow = new EV3UltrasonicSensor(SensorPort.S1);
-//				sensorOk = true;
-//			} catch (Exception e) {
-//				System.out.println("Errore ultrasuoni S1...");
-//				sensorOk = false;
-//			}
-//		} while (!sensorOk);
-//		System.out.println("S1 OK");
-//		
-//		sensorOk = false;
-//		do {
-//			try {
-//				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
-//				sensorOk = true;
-//			} catch (Exception e) {
-//				System.out.println("Errore ultrasuoni S2...");
-//				sensorOk = false;
-//			}
-//		} while (!sensorOk);
-//		System.out.println("S2 OK");
-//		
-//		sensorOk = false;
-//		do {
-//			try {
-//				usSide = new EV3UltrasonicSensor(SensorPort.S3);
-//				sensorOk = true;
-//			} catch (Exception e) {
-//				System.out.println("Errore ultrasuoni S3...");
-//				sensorOk = false;
-//			}
-//		} while (!sensorOk);
-//		System.out.println("S3 OK");
-//		
-//		spFwdLow = usFwdLow.getDistanceMode();
-//		spFwdHigh = usFwdHigh.getDistanceMode();
-//		spSide = usSide.getDistanceMode();
-//		sample = new float[spFwdLow.sampleSize()];
+	public Sensors() {		
+		boolean sensorOk = false;
+		do {
+			try {
+				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
+				sensorOk = true;
+			} catch (Exception e) {
+				System.out.println("Errore ultrasuoni S2...");
+				sensorOk = false;
+			}
+		} while (!sensorOk);
+		System.out.println("S2 OK");
+		
+		sensorOk = false;
+		do {
+			try {
+				usSide = new EV3UltrasonicSensor(SensorPort.S3);
+				sensorOk = true;
+			} catch (Exception e) {
+				System.out.println("Errore ultrasuoni S3...");
+				sensorOk = false;
+			}
+		} while (!sensorOk);
+		System.out.println("S3 OK");
+		
+		spFwdHigh = usFwdHigh.getDistanceMode();
+		spSide = usSide.getDistanceMode();
+		sample = new float[spFwdHigh.sampleSize()];
 	}
 
 	public boolean setRescueLineMode() {
@@ -109,7 +91,7 @@ public class Sensors {
 	}
 
 	public boolean isAnyBlack() {
-		return (colorC.equals("b") || colorsLR.equals("bn") || colorsLR.equals("nb"));
+		return (colorC.equals("b") || colorsLR.charAt(0) == 'n' || colorsLR.charAt(1) == 'b');
 	}
 
 	public int getDelta() {
@@ -156,29 +138,23 @@ public class Sensors {
 	public boolean isSilver() {
 		byte[] buffReadResponse = new byte[1];
 		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-		silver = buffReadResponse[0] != 0;
-		return silver;
+		return (buffReadResponse[0] != 0);
 	}
-//	
-//	public float checkDistanceFwdLow() {
-//		spFwdLow.fetchSample(sample, 0);
-//		return sample[0];
-//	}
-//	
-//	public float checkDistanceFwdHigh() {
-//		spFwdHigh.fetchSample(sample, 0);
-//		return sample[0];
-//	}
-//	
-//	public float checkDistanceSide() {
-//		spSide.fetchSample(sample, 0);
-//		return sample[0];
-//	}
+	
+	public int checkDistanceFwdHigh() {
+		spFwdHigh.fetchSample(sample, 0);
+		return (int) (sample[0]*100);
+	}
+	
+	public int checkDistanceSide() {
+		spSide.fetchSample(sample, 0);
+		return (int) (sample[0]*100);
+	}
 
-	public int checkDistance() {
+	public int checkDistanceFwdLow() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('D', buffReadResponse, buffReadResponse.length);
-		int dist  = uintToInt(buffReadResponse[0], buffReadResponse[1]);
+		int dist  = EndianTools.decodeUShortLE(buffReadResponse, 0);
 		return dist;
 	}
 	
@@ -200,8 +176,5 @@ public class Sensors {
 	
 	public int getGyroZ() {
 		return GyroZ;
-	}
-	
-	
-
+	}	
 }
