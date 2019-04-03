@@ -5,8 +5,8 @@ import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
 
 public class Motors {
-	public static final int BASE_SPEED = 40; // Scala 0-100
-	public static final int MAX_SPEED = 80; // Oltre i motori diventano imprecisi
+	public static final int BASE_SPEED = 30; // Scala 0-100
+	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
 	public static final double WHEEL_DIAM = 3.2;
 	public static final double INT_AXIS = 12.2;
 	public static final double EXT_AXIS = 16.2;

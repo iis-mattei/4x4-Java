@@ -15,7 +15,7 @@ public class Sensors {
 	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
 
 	private String colorsLR, colorC;
-	private int luxL, luxC, luxR, GyroX, GyroY, GyroZ;
+	private int luxL, luxC, luxR, gyroX, gyroY, gyroZ;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft;
 
 	private int uintToInt(byte lsb, byte msb) {
@@ -161,20 +161,20 @@ public class Sensors {
 	public void checkGyro() {
 		byte[] buffReadResponse = new byte[6];
 		arduino.getData('G', buffReadResponse, buffReadResponse.length);
-		GyroX = EndianTools.decodeShortLE(buffReadResponse, 0);
-		GyroY = EndianTools.decodeShortLE(buffReadResponse, 2);
-		GyroZ = EndianTools.decodeShortLE(buffReadResponse, 4);
+		gyroX = EndianTools.decodeShortLE(buffReadResponse, 0);
+		gyroY = EndianTools.decodeShortLE(buffReadResponse, 2);
+		gyroZ = EndianTools.decodeShortLE(buffReadResponse, 4);
 	}
 	
 	public int getGyroX() {
-		return GyroX;
+		return gyroX;
 	}
 	
 	public int getGyroY() {
-		return GyroY;
+		return gyroY;
 	}
 	
 	public int getGyroZ() {
-		return GyroZ;
+		return gyroZ;
 	}	
 }

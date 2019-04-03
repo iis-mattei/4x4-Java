@@ -49,10 +49,6 @@ public class Main {
 		System.out.println("\n***************Sto partendo...");
 
 		while (true) {
-			sensors.checkGyro();
-			System.out.println("GyroX = " + sensors.getGyroX());
-			System.out.println("GyroY = " + sensors.getGyroY());
-			System.out.println("GyroZ = " + sensors.getGyroZ());
 			if (Button.ESCAPE.isDown()) {
 				// Termina il programma
 				motors.stop();
@@ -64,7 +60,7 @@ public class Main {
 				// Riavvia il ciclo principale
 				return;
 			}
-			if (sensors.isSilver() && (sensors.checkDistanceFwdHigh() < 120 || sensors.checkDistanceFwdHigh() > 70)) {
+			if (sensors.isSilver()) {
 //				 Passo alla modalità zona vittime
 				evacuationZone();
 				sensors.setRescueLineMode();
@@ -130,6 +126,8 @@ public class Main {
 			case "ss":
 			case "sw":
 			case "ws":
+				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+				break;
 			case "ww":
 				// Rettilineo, azzero prenotazioni verde
 				if(greenLeft > 0) {
@@ -159,16 +157,19 @@ public class Main {
 				} else if (greenLeft > 0 && greenRight > 0) {
 					// Inversione di marcia
 //					System.out.println((new Date()).getTime() + "\tInversione di marcia");
-//					motors.spin(Motors.BASE_SPEED, 180);
-					motors.stop();
-					sensors.checkGyro();
-					int zStart = sensors.getGyroZ();
-					int z = 0;
-					do {
-						motors.drive(Motors.BASE_SPEED, -Motors.BASE_SPEED);
-						sensors.checkGyro();
-						z = sensors.getGyroZ();
-					} while(z < zStart + 180);
+					motors.spin(Motors.BASE_SPEED, 180);
+//					motors.stop();
+//					sensors.checkGyro();
+//					int zStart = sensors.getGyroZ();
+//					int z = 0;
+//					do {
+//						motors.drive(-Motors.BASE_SPEED, Motors.BASE_SPEED);
+//						sensors.checkGyro();
+//						z = sensors.getGyroZ();
+//						if (Button.ESCAPE.isDown()) {
+//							System.exit(0);
+//						}
+//					} while(z < zStart + 180);
 					motors.travel(Motors.BASE_SPEED, 5);
 					motors.resetTachoCount();
 					greenLeft = 0;

@@ -32,7 +32,7 @@ public class Test {
 		sensors.checkGyro();
 		System.out.print("X: "+sensors.getGyroX()+" ");
 		System.out.print("Y: "+sensors.getGyroY()+" ");
-		System.out.println("Z:"+sensors.getGyroZ());
+		System.out.println("Z: "+sensors.getGyroZ());
 		System.out.println("D: "+sensors.checkDistanceFwdLow());
 		System.out.println("A: "+sensors.isSilver());
 		Thread.sleep(1000);
