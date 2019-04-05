@@ -18,7 +18,7 @@ public class Motors {
 
 	// Motori delle ruote: B-> sinistro C-> destro
 	// Da attivare se i motori sono nel verso giusto
-//	private RegulatedMotor MA = Motor.A;
+	private RegulatedMotor MA = Motor.A;
 //	private RegulatedMotor MB = Motor.B;
 //	private RegulatedMotor MC = Motor.C;
 	private RegulatedMotor MD = Motor.D;
@@ -140,20 +140,20 @@ public class Motors {
 		MD.rotate(-280);
 		MD.stop();
 	}
-//
-//	// Apri il portapalline
-//	public void containerOpen() {
-//		MA.setSpeed(120);
-//		MA.rotate(130);
-//		MA.stop();
-//	}
-//
-//	// Chiudi il portapalline
-//	public void containerClose() {
-//		MA.setSpeed(120);
-//		MA.rotate(-130);
-//		MA.stop();
-//	}
+
+	// Apri il portapalline
+	public void containerOpen() {
+		MA.setSpeed(120);
+		MA.rotate(130);
+		MA.stop();
+	}
+
+	// Chiudi il portapalline
+	public void containerClose() {
+		MA.setSpeed(120);
+		MA.rotate(-130);
+		MA.stop();
+	}
 
 	public boolean isMoving() {
 		return (MC.isMoving() || MB.isMoving());

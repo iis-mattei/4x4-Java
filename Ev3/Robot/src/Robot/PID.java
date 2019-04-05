@@ -47,7 +47,7 @@ public class PID {
 			rightSpeed = Motors.BASE_SPEED; 
 		}
 		
-		// Impongo il rispetto delle soglie
+		// Impongo il rispetto delle velocità massime
 		leftSpeed = (leftSpeed > Motors.MAX_SPEED) ? Motors.MAX_SPEED : leftSpeed;
 		leftSpeed = (leftSpeed < -Motors.MAX_SPEED) ? -Motors.MAX_SPEED : leftSpeed;
 		rightSpeed = (rightSpeed > Motors.MAX_SPEED) ? Motors.MAX_SPEED : rightSpeed;
