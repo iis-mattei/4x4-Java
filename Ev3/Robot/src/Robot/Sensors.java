@@ -135,11 +135,11 @@ public class Sensors {
 		return touchBackLeft;
 	}
 
-	public boolean isSilver() {
-		byte[] buffReadResponse = new byte[1];
-		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-		return (buffReadResponse[0] != 0);
-	}
+//	public boolean isSilver() {
+//		byte[] buffReadResponse = new byte[1];
+//		arduino.getData('S', buffReadResponse, buffReadResponse.length);
+//		return (buffReadResponse[0] != 0);
+//	}
 	
 	public int checkDistanceFwdHigh() {
 		spFwdHigh.fetchSample(sample, 0);

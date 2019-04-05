@@ -61,11 +61,11 @@ public class Main {
 				// Riavvia il ciclo principale
 				return;
 			}
-			if (sensors.isSilver()) {
-//				 Passo alla modalità zona vittime
-				evacuationZone();
-				sensors.setRescueLineMode();
-			}
+//			if (sensors.isSilver()) {
+//				// Passo alla modalità zona vittime
+//				evacuationZone();
+//				sensors.setRescueLineMode();
+//			}
 
 			// Controlla se c'è un ostacolo: nel caso lo aggira
 			float distFwdLow = sensors.checkDistanceFwdLow();
@@ -126,12 +126,8 @@ public class Main {
 			if (sensors.isAnyBlack()) {
 				motors.resetTachoCount();
 			} else if (motors.getTachoCount() > NO_BLACK_DIST * Motors.COEFF_CM) {
+				// Attiva la procedura per ritrovare la linea nera
 				motors.travel(Motors.BASE_SPEED, -30);
-				// Se necessario, attiva la procedura per ritrovare la linea nera
-//				while (!sensors.isAnyBlack()) {
-//					motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
-//					sensors.checkColors();
-//				}
 			}
 
 			// Seguilinea con il PID
@@ -153,7 +149,9 @@ public class Main {
 					int distSide = sensors.checkDistanceSide();
 					int distFront = sensors.checkDistanceFwdHigh();
 					if(distSide < 110 && distFront < 110 && distFront > 70) {
-						System.exit(0);
+						// Passo alla modalità zona vittime
+						evacuationZone();
+						sensors.setRescueLineMode();
 					}
 				} else if(greenLeft > 0) {
 					// Rettilineo, azzero prenotazioni verde
@@ -183,35 +181,22 @@ public class Main {
 					motors.drive(speeds[0], speeds[1]);
 				} else if (greenLeft > 0 && greenRight > 0) {
 					// Inversione di marcia
-//					System.out.println((new Date()).getTime() + "\tInversione di marcia");
+					System.out.println((new Date()).getTime() + "\tInversione di marcia");
 					motors.stop();
 					motors.spin(Motors.BASE_SPEED, 180);
-//					motors.stop();
-//					sensors.checkGyro();
-//					int zStart = sensors.getGyroZ();
-//					int z = 0;
-//					do {
-//						motors.drive(-Motors.BASE_SPEED, Motors.BASE_SPEED);
-//						sensors.checkGyro();
-//						z = sensors.getGyroZ();
-//						if (Button.ESCAPE.isDown()) {
-//							System.exit(0);
-//						}
-//					} while(z < zStart + 180);
-//					motors.travel(Motors.BASE_SPEED, 5);
 					motors.resetTachoCount();
 					greenLeft = 0;
 					greenRight = 0;
 				} else if (greenLeft > 0) {
 					// Curva a sinistra
-//					System.out.println((new Date()).getTime() + "\tCurva a sinistra");
+					System.out.println((new Date()).getTime() + "\tCurva a sinistra");
 					motors.stop();
 					motors.spin(Motors.BASE_SPEED, 60);
 					motors.resetTachoCount();
 					greenLeft = 0;
 				} else if (greenRight > 0) {
 					// Curva a destra
-//					System.out.println((new Date()).getTime() + "\tCurva a destra");
+					System.out.println((new Date()).getTime() + "\tCurva a destra");
 					motors.stop();
 					motors.spin(Motors.BASE_SPEED, -60);
 					motors.resetTachoCount();

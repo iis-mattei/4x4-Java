@@ -1,7 +1,5 @@
 package Robot;
 
-import java.util.zip.CheckedInputStream;
-
 import lejos.hardware.motor.Motor;
 import lejos.robotics.MirrorMotor;
 import lejos.robotics.RegulatedMotor;
