@@ -275,7 +275,7 @@ public class Main {
 		// Ad ogni spazzata raccolgo le palline e le riporto nella zona sicura
 		// Se manca meno di un minuto esco dal ciclo e cerco l'uscita
 		motors.bladeLower();
-		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7*60*1000); i++) {
+		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7 * 60 * 1000); i++) {
 			// Percorro la zona all'andata
 			while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
 				// Vado avanti finché non trovo la parete
@@ -365,15 +365,15 @@ public class Main {
 		motors.travel(Motors.BASE_SPEED, 30);
 		boolean foundBlack = false;
 		for (int i = 0; i < 7; i++) {
-			if(sensors.isAnyBlack()) {
+			if (sensors.isAnyBlack()) {
 				foundBlack = true;
 				break;
 			}
 			motors.spin(Motors.BASE_SPEED, 10);
 		}
-		if(!foundBlack) {
+		if (!foundBlack) {
 			for (int i = 0; i < 14; i++) {
-				if(sensors.isAnyBlack()) {
+				if (sensors.isAnyBlack()) {
 					foundBlack = true;
 					break;
 				}
