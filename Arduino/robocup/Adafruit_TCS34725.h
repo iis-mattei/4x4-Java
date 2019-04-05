@@ -42,7 +42,7 @@
  #include <WProgram.h>
 #endif
 
-#include <SoftwareWire.h>
+#include "SoftwareWire.h"
 
 #define TCS34725_ADDRESS          (0x29)
 

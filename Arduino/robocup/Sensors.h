@@ -1,11 +1,10 @@
-#include <SoftwareWire.h>
-#include <Adafruit_TCS34725.h>
-//#include <MPU6050_4x4.h>
+#include "SoftwareWire.h"
+#include "Adafruit_TCS34725.h"
 
-#define TCAADDR 0x70
-#define CSLAddr 2
-#define CSRAddr 5
-#define CSCAddr 4
+#define TCAADDR 0x70	// Indirizzo I2C del MUX
+#define CSLAddr 2		// Canale per il sensore sinistro
+#define CSRAddr 5		// Canale per il sensore destro
+#define CSCAddr 4		// Canale per il sensore centrale
 
 const char COL_GREEN = 'g', COL_WHITE = 'w', COL_BLACK = 'b', COL_SILVER = 's';
 
@@ -20,21 +19,13 @@ public:
 	int getLuxCenter();
 	int getLuxLeft();
 	int getLuxRight();
-	// void calibrateGyroSensor();
-	// void readGyroSensor();
-	// void updateGyroSensor();
-	// float getGyroX();
-	// float getGyroY();		// salite
-	// float getGyroZ();		// zona vittime
 	void debugColors();
 
 private:
 	static const int RED = 0, GREEN = 1, BLUE = 2;
 	static const float GREEN_MULTIPLIER;
 	Adafruit_TCS34725 colorSensorL, colorSensorR, colorSensorC;
-	//MPU6050 *mpu6050;
 	int colorsLeft[3], colorsCenter[3], colorsRight[3];
-	//float gyro[3];
 	int luxLeft, luxCenter, luxRight;
 	int blackMax, whiteMax;
 	void tcaSelect(uint8_t addr);

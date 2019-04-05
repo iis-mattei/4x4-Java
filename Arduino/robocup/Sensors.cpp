@@ -1,5 +1,5 @@
+#include <Arduino.h>
 #include "Sensors.h"
-#include "Arduino.h"
 
 const float Sensors::GREEN_MULTIPLIER = 1.2f;
 
@@ -8,11 +8,7 @@ Sensors::Sensors() {
 	colorSensorR = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
 	colorSensorC = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_16X);
 	Wire1.begin();
-	// Wire2.begin();
-	// mpu6050 = new MPU6050(Wire2);
-	// mpu6050->begin();
 }
-
 void Sensors::tcaSelect(uint8_t addr) {
 	Wire1.beginTransmission(TCAADDR);
 	Wire1.write(1 << addr);
@@ -27,30 +23,6 @@ void Sensors::readColorSensor(Adafruit_TCS34725& colorSensor, uint8_t addr, int 
 	colors[BLUE] = blue;
 	lux = (int) colorSensor.calculateLux(red, green, blue);
 }
-// void Sensors::calibrateGyroSensor() {
-// 	mpu6050->calcGyroOffsets(true);
-// }
-// void Sensors::updateGyroSensor(){
-// 	mpu6050->update();
-// }
-// void Sensors::readGyroSensor() {
-// 	gyro[0] = mpu6050->getAngleX();
-// 	gyro[1] = mpu6050->getAngleY();
-// 	gyro[2] = mpu6050->getAngleZ();
-//
-// 	Serial.print(gyro[0]);
-// 	Serial.print("\t"); Serial.print(gyro[1]);
-// 	Serial.print("\t"); Serial.println(gyro[2]);
-// }
-// float Sensors::getGyroX() {
-// 	return gyro[0];
-// }
-// float Sensors::getGyroY() {
-// 	return gyro[1];
-// }
-// float Sensors::getGyroZ() {
-// 	return gyro[2];
-// }
 char Sensors::getColorID(int colors[], int lux) {
 //	if (colors[GREEN] > GREEN_MULTIPLIER * (colors[RED] + colors[BLUE]) / 2) {
 	if (colors[GREEN] >= colors[RED]) {
@@ -63,7 +35,6 @@ char Sensors::getColorID(int colors[], int lux) {
 		return COL_SILVER;
 	}
 }
-
 void Sensors::readAllColors() {
 	this->readColorSensor(colorSensorC, CSCAddr, colorsCenter, luxCenter);
 	this->readColorSensor(colorSensorL, CSLAddr, colorsLeft, luxLeft);

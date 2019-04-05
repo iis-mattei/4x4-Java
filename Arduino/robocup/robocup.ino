@@ -1,8 +1,10 @@
-#include <Sensors.h>
+// Librerie di sistema
 #include <NewPing.h>
-#include <MPU6050_4x4.h>
 #include <Wire.h>
-#include <SoftwareWire.h>
+// Librerie custom, nella stessa directory del file .ino
+#include "Sensors.h"
+#include "MPU6050_4x4.h"
+#include "SoftwareWire.h"
 
 #define SLAVE_ADDRESS 0x04
 #define FWD_RIGHT 12
@@ -13,16 +15,15 @@
 #define Trigger 7
 #define Echo 6
 #define Max_Distance 150
-MPU6050 mpu6050(Wire2);
 
 long timer = 0;
-
-Sensors *sensors;
 byte request;
 int lSilver, GyroX, GyroY, GyroZ, dist;
 boolean rescueLineMode;
-NewPing ultra(Trigger, Echo, Max_Distance);
 
+Sensors *sensors;
+NewPing ultra(Trigger, Echo, Max_Distance);
+MPU6050 mpu6050(Wire2);
 
 void setup() {
   sensors = new Sensors();

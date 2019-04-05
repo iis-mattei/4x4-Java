@@ -5,7 +5,7 @@ import lejos.hardware.Button;
 import lejos.hardware.Sound;
 
 public class Main {
-	static final int OBSTACLE_DIST = 5; // In cm
+	static final int OBSTACLE_DIST = 7; // In cm
 	static final int NO_BLACK_DIST = 25; // In cm
 
 	static Sensors sensors = new Sensors(); 
@@ -41,6 +41,7 @@ public class Main {
 
 	public static void lineFollower() {
 		int greenLeft = 0, greenRight = 0;
+		boolean silver = false;
 
 		Sound.beepSequenceUp();
 		System.out.println("Premi per partire...");
@@ -52,7 +53,7 @@ public class Main {
 			if (Button.ESCAPE.isDown()) {
 				// Termina il programma
 				motors.stop();
-				motors.bladeLower();
+//				motors.bladeLower();
 //				motors.containerOpen();
 				System.exit(0);
 			}
@@ -69,6 +70,9 @@ public class Main {
 			// Controlla se c'è un ostacolo: nel caso lo aggira
 			float distFwdLow = sensors.checkDistanceFwdLow();
 			if (distFwdLow < OBSTACLE_DIST && distFwdLow > 0) {
+				motors.stop();
+				
+				// Raddrizzo il robot rispetto alla linea nera
 				if (sensors.getColorsLR().equals("wb")) {
 					while (!sensors.getColorsLR().equals("ww")) {
 						motors.spin(Motors.BASE_SPEED, 10);
@@ -80,26 +84,36 @@ public class Main {
 						sensors.checkColors();
 					}
 				}
+				
+				// Cerca il lato giusto per passare
 				System.out.println((new Date()).getTime() + "\tAggiramento ostacolo");
-				motors.spin(Motors.BASE_SPEED, -90);
-				float obstacleDist = sensors.checkDistanceSide();
-				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
-					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-				}
-				motors.travel(Motors.BASE_SPEED, 10);
+				int direction = 1;	// -1 = right, 1 = left
 				motors.spin(Motors.BASE_SPEED, 90);
 				motors.travel(Motors.BASE_SPEED, 10);
-				while (sensors.checkDistanceSide() < obstacleDist + 0.05) {
-					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+				if(sensors.checkDistanceFwdLow() < 20 || sensors.checkDistanceSide() < 30) {
+					motors.spin(Motors.BASE_SPEED, -180);
+					direction = -1;
 				}
+				
+				
+//				float obstacleDist = sensors.checkDistanceSide();
+//				while (sensors.checkDistanceSide() < obstacleDist + 0.1) {
+//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+//				}
+				motors.travel(Motors.BASE_SPEED, 5);
+				motors.spin(Motors.BASE_SPEED, -90*direction);
+				motors.travel(Motors.BASE_SPEED, 35);
+//				while (sensors.checkDistanceSide() < obstacleDist + 0.1) {
+//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+//				}
+				motors.spin(Motors.BASE_SPEED, -90*direction);
 				motors.travel(Motors.BASE_SPEED, 10);
-				motors.spin(Motors.BASE_SPEED, 90);
-				sensors.checkColors();
-				while (!sensors.isAnyBlack()) {
-					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-					sensors.checkColors();
-				}
-				motors.spin(Motors.BASE_SPEED, -45);
+//				sensors.checkColors();
+//				while (!sensors.isAnyBlack()) {
+//					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+//					sensors.checkColors();
+//				}
+				motors.spin(Motors.BASE_SPEED, 90*direction);
 				motors.resetTachoCount();
 				continue;
 			}
@@ -112,7 +126,7 @@ public class Main {
 			if (sensors.isAnyBlack()) {
 				motors.resetTachoCount();
 			} else if (motors.getTachoCount() > NO_BLACK_DIST * Motors.COEFF_CM) {
-				motors.travel(-Motors.BASE_SPEED, 30);
+				motors.travel(Motors.BASE_SPEED, -30);
 				// Se necessario, attiva la procedura per ritrovare la linea nera
 //				while (!sensors.isAnyBlack()) {
 //					motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
@@ -124,16 +138,27 @@ public class Main {
 			speeds = pid.getSpeed(sensors.getDelta());
 			switch (sensors.getColorsLR()) {
 			case "ss":
-			case "sw":
-			case "ws":
+				silver = true;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
+			case "sw":
+			case "ws":
+				silver = true;
+				motors.drive(speeds[0], speeds[1]);
+				break;
 			case "ww":
-				// Rettilineo, azzero prenotazioni verde
-				if(greenLeft > 0) {
+				if(silver) {
+//					motors.travel(Motors.BASE_SPEED, 3);
+//					motors.stop();
+					int distSide = sensors.checkDistanceSide();
+					int distFront = sensors.checkDistanceFwdHigh();
+					if(distSide < 110 && distFront < 110 && distFront > 70) {
+						System.exit(0);
+					}
+				} else if(greenLeft > 0) {
+					// Rettilineo, azzero prenotazioni verde
 					greenLeft--;
-				}
-				if(greenRight > 0) {
+				} else if(greenRight > 0) {
 					greenRight--;
 				}
 				motors.drive(speeds[0], speeds[1]);
@@ -141,6 +166,7 @@ public class Main {
 
 			case "wb":
 			case "bw":
+				silver = false;
 				if (sensors.getColorC().equals("b")) {
 					// Incrocio a T
 					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
@@ -151,12 +177,14 @@ public class Main {
 				break;
 
 			case "bb":
+				silver = false;
 				if (greenLeft == 0 && greenRight == 0) {
 					// Segui la linea
 					motors.drive(speeds[0], speeds[1]);
 				} else if (greenLeft > 0 && greenRight > 0) {
 					// Inversione di marcia
 //					System.out.println((new Date()).getTime() + "\tInversione di marcia");
+					motors.stop();
 					motors.spin(Motors.BASE_SPEED, 180);
 //					motors.stop();
 //					sensors.checkGyro();
@@ -170,21 +198,21 @@ public class Main {
 //							System.exit(0);
 //						}
 //					} while(z < zStart + 180);
-					motors.travel(Motors.BASE_SPEED, 5);
+//					motors.travel(Motors.BASE_SPEED, 5);
 					motors.resetTachoCount();
 					greenLeft = 0;
 					greenRight = 0;
 				} else if (greenLeft > 0) {
 					// Curva a sinistra
 //					System.out.println((new Date()).getTime() + "\tCurva a sinistra");
-					motors.travel(Motors.BASE_SPEED, 2);
+					motors.stop();
 					motors.spin(Motors.BASE_SPEED, 60);
 					motors.resetTachoCount();
 					greenLeft = 0;
 				} else if (greenRight > 0) {
 					// Curva a destra
 //					System.out.println((new Date()).getTime() + "\tCurva a destra");
-					motors.travel(Motors.BASE_SPEED, 2);
+					motors.stop();
 					motors.spin(Motors.BASE_SPEED, -60);
 					motors.resetTachoCount();
 					greenRight = 0;
@@ -193,6 +221,7 @@ public class Main {
 
 			case "gw":
 			case "gb":
+				silver = false;
 				// Prenoto curva a sinistra e vado dritto
 				greenLeft++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
@@ -200,12 +229,14 @@ public class Main {
 
 			case "wg":
 			case "bg":
+				silver = false;
 				// Prenoto curva a destra e vado dritto
 				greenRight++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 
 			case "gg":
+				silver = false;
 				// Prenoto inversione di marcia e vado dritto
 				greenLeft++;
 				greenRight++;
