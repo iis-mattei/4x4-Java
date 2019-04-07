@@ -11,16 +11,17 @@ public class Main {
 
 	private static Sensors sensors = new Sensors();
 	private static Motors motors = new Motors();
-	private static MainThread mainThread;
+	private static MainThread mainThread = null;
 
-	private static int deltaMax;
-	private static long startTime;
+	private static int deltaMax = 0;
+	private static long startTime = 0;
 
 	public static void main(String args[]) {
 		Button.DOWN.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(Key k) {
-				System.out.println("Riavvio...");
+				if(mainThread != null) {
+					System.out.println("Riavvio...");
 				mainThread.interrupt();
 				try {
 					// Aspetta (fino a 3 secondi) che il thread sia terminato
@@ -29,6 +30,7 @@ public class Main {
 					System.out.println("InterruptedException");
 				}
 				mainThread.start();
+				}
 			}
 
 			@Override
@@ -73,11 +75,11 @@ class MainThread extends Thread {
 
 	private int deltaMax;
 	private long startTime;
-	private boolean loaded;
+	private boolean loaded = false;
 
 	private Sensors sensors;
 	private Motors motors;
-	private PID pid;
+	private PID pid = null;
 
 	public MainThread(int deltaMax, long startTime, Sensors sensors, Motors motors) {
 		super();
