@@ -2,61 +2,114 @@ package Robot;
 
 import java.util.Date;
 import lejos.hardware.Button;
+import lejos.hardware.Key;
+import lejos.hardware.KeyListener;
 import lejos.hardware.Sound;
 
 public class Main {
-	static final int OBSTACLE_DIST = 7; // In cm
-	static final int NO_BLACK_DIST = 25; // In cm
+	public static final boolean DEBUG = true; // Per stampare più informazioni
 
-	static Sensors sensors = new Sensors();
-	static Motors motors = new Motors();
-	static PID pid;
+	private static Sensors sensors = new Sensors();
+	private static Motors motors = new Motors();
+	private static MainThread mainThread;
 
-	static int[] speeds = new int[2];
-	static int deltaMax;
-	static long startTime;
+	private static int deltaMax;
+	private static long startTime;
 
 	public static void main(String args[]) {
-		init();
-		while (true) {
-			lineFollower();
-		}
-	}
+		Button.DOWN.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(Key k) {
+				System.out.println("Riavvio...");
+				mainThread.interrupt();
+				try {
+					// Aspetta (fino a 3 secondi) che il thread sia terminato
+					mainThread.join(3_000);
+				} catch (InterruptedException e) {
+					System.out.println("InterruptedException");
+				}
+				mainThread.start();
+			}
 
-	public static void init() {
+			@Override
+			public void keyReleased(Key k) {
+				return;
+			}
+		});
+		Button.ESCAPE.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(Key k) {
+				System.out.println("Fine!");
+				System.exit(0);
+			}
+
+			@Override
+			public void keyReleased(Key k) {
+				return;
+			}
+		});
+
 		Sound.beepSequenceUp();
-		System.out.println("Premi per calibrare");
-		Button.waitForAnyPress();
+		System.out.println("INVIO per calibrare");
+		Button.ENTER.waitForPress();
+
 		// Memorizza l'istante di inizio del percorso
 		startTime = new Date().getTime();
 		int blackLevel = sensors.detectBlack();
 		sensors.checkColors();
 		deltaMax = (int) Math.round(((sensors.getLuxL() + sensors.getLuxR()) / 2) - sensors.getLuxC());
-		pid = new PID(0, deltaMax);
 		System.out.println("blackLevel = " + blackLevel + "\tdeltaMax = " + deltaMax);
+
+		// Avvia il thread per seguilinea e zona vittime
+		mainThread = new MainThread(deltaMax, startTime, sensors, motors);
+		mainThread.start();
+	}
+}
+
+class MainThread extends Thread {
+	private static final int OBSTACLE_DIST = 8; // Centimetri
+	private static final int NO_BLACK_DIST = 25; // Centimetri
+	private static final int DOUBLE_WHITE_MAX = 5;
+
+	private int deltaMax;
+	private long startTime;
+	private boolean loaded;
+
+	private Sensors sensors;
+	private Motors motors;
+	private PID pid;
+
+	public MainThread(int deltaMax, long startTime, Sensors sensors, Motors motors) {
+		super();
+		this.deltaMax = deltaMax;
+		this.startTime = startTime;
+		this.sensors = sensors;
+		this.motors = motors;
 	}
 
-	public static void lineFollower() {
-		int greenLeft = 0, greenRight = 0;
-		boolean silver = false;
+	@Override
+	public void run() {
+		lineFollower();
+	}
+	
+	@Override
+	public void interrupt() {
+		super.interrupt();
+		motors.stop();
+	}
+
+	private void lineFollower() {
+		int greenLeft = 0, greenRight = 0, silver = 0, doubleWhiteCounter = 0;
+		int[] speeds = new int[2];
+		double pidCorrection = 1;
 
 		Sound.beepSequenceUp();
-		System.out.println("Premi per partire");
-		Button.waitForAnyPress();
+		System.out.println("INVIO per partire");
+		Button.ENTER.waitForPress();
 		System.out.println("\n*** Partito ***");
+		pid = new PID(0, deltaMax);
 
 		while (true) {
-			// Per terminare il programma
-			if (Button.ESCAPE.isDown()) {
-				motors.stop();
-				System.exit(0);
-			}
-
-			// Per riavviare il ciclo principale
-			if (Button.DOWN.isDown()) {
-				return;
-			}
-
 			// Controlla se c'è un ostacolo: nel caso lo aggira
 			float distFwdLow = sensors.checkDistanceFwdLow();
 			if (distFwdLow < OBSTACLE_DIST && distFwdLow > 0) {
@@ -65,50 +118,70 @@ public class Main {
 			}
 
 			sensors.checkColors();
-//			System.out.println((new Date()).getTime() + " - Colors LR: " + sensors.getColorsLR());
+			if (Main.DEBUG) {
+				System.out.println((new Date()).getTime() + " - Colors LR: " + sensors.getColorsLR());
+			}
 
 			// Verifica se si è persa la pista e, se necessario, torna indietro per cercarla
 			if (sensors.isAnyBlack()) {
+				doubleWhiteCounter = 0;
+				silver = Math.max(silver - 1, 0);
 				motors.resetTachoCount();
 			} else if (motors.getTachoCount() > NO_BLACK_DIST * Motors.COEFF_CM) {
+				System.out.println("Cerca la linea...");
 				motors.travel(Motors.BASE_SPEED, -NO_BLACK_DIST - 5);
+			}
+
+			sensors.checkGyro();
+			if (Math.abs(sensors.getGyroY()) > 10) {
+				pidCorrection = 0.5;
+			} else if (doubleWhiteCounter > 0) {
+				pidCorrection = 1 + doubleWhiteCounter / 10;
+			} else {
+				pidCorrection = 1;
 			}
 
 			// Seguilinea con il PID
 			speeds = pid.getSpeed(sensors.getDelta());
+			// Adatta il PID alle condizioni della pista
+			for (int i = 0; i < speeds.length; i++) {
+				speeds[i] = (int) Math.round(speeds[i] * pidCorrection);
+			}
+
 			switch (sensors.getColorsLR()) {
 			case "ss":
-				silver = true;
+				silver++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 			case "sw":
 			case "ws":
-				silver = true;
+				silver++;
 				motors.drive(speeds[0], speeds[1]);
 				break;
 			case "ww":
+				doubleWhiteCounter = Math.min(doubleWhiteCounter + 1, DOUBLE_WHITE_MAX);
+				// Rettilineo, decrementa prenotazioni verde
+				greenLeft = Math.max(greenLeft - 1, 0);
+				greenRight = Math.max(greenRight - 1, 0);
+				motors.drive(speeds[0], speeds[1]);
 				// Se le misure confermano, passa alla modalità zona vittime
-				if (silver) {
+				if (silver > 0) {
 					int distSide = sensors.checkDistanceSide();
 					int distFront = sensors.checkDistanceFwdHigh();
-					if (distSide < 110 && distFront < 110 && distFront > 70) {
+					if (distSide < 110 && distFront < 120 && distFront > 80) {
 						evacuationZone();
-						// All'uscita dalla zona vittime si torna al seguilinea
-						sensors.setRescueLineMode();
+						// Resetta tutto per ricominciare
+						pid = new PID(0, deltaMax);
+						greenLeft = 0;
+						greenRight = 0;
+						silver = 0;
+						doubleWhiteCounter = 0;
 					}
 				}
-				// Rettilineo, azzera prenotazioni verde
-				if (greenLeft > 0) {
-					greenLeft--;
-				} else if (greenRight > 0) {
-					greenRight--;
-				}
-				motors.drive(speeds[0], speeds[1]);
 				break;
 
 			case "wb":
 			case "bw":
-				silver = false;
 				if (sensors.getColorC().equals("b")) {
 					// Incrocio a T
 					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
@@ -119,7 +192,6 @@ public class Main {
 				break;
 
 			case "bb":
-				silver = false;
 				if (greenLeft == 0 && greenRight == 0) {
 					// Segue la linea
 					motors.drive(speeds[0], speeds[1]);
@@ -150,7 +222,6 @@ public class Main {
 
 			case "gw":
 			case "gb":
-				silver = false;
 				// Prenota curva a sinistra e va dritto
 				greenLeft++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
@@ -158,14 +229,12 @@ public class Main {
 
 			case "wg":
 			case "bg":
-				silver = false;
 				// Prenota curva a destra e va dritto
 				greenRight++;
 				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
 				break;
 
 			case "gg":
-				silver = false;
 				// Prenota inversione di marcia e va dritto
 				greenLeft++;
 				greenRight++;
@@ -175,70 +244,64 @@ public class Main {
 		}
 	}
 
-	public static void evacuationZone() {
-		System.out.println("Zona Vittime");
-//		System.exit(0);
+	private void evacuationZone() {
+		System.out.println("*** Zona Vittime ***");
 		// zoneOrientation: 0 è larga (120x90), 1 è lunga (90x120)
 		// safePosition: 0 è l'angolo in basso a sinistra, gli altri in senso orario
 		// gatePosition: da 0 a 3, da sinistra a destra
 		int zoneOrientation = -1, safePosition = -1, gatePosition = -1;
-		boolean loaded = false;
+		loaded = false;
 
-		// Imposto Arduino in modalità zona vittime
+		// Imposta Arduino in modalità zona vittime
 		sensors.setEvacuationZoneMode();
-		System.out.println("***Zona vittime***");
 
-		// Avanzo fino a far entrare tutto il robot nella zona
+		// Avanza per far entrare tutto il robot nella zona
 		motors.travel(Motors.BASE_SPEED, 10);
 
-		// Individuo la forma della zona vittime
-		if (sensors.checkDistanceFwdHigh() < 90) {
+		// Individua la forma della zona vittime
+		if (sensors.checkDistanceFwdHigh() < 85) {
 			zoneOrientation = 0;
 		} else {
 			zoneOrientation = 1;
 		}
 		System.out.println("zoneOrientation=" + zoneOrientation);
 
-		// Individuo la posizione dell'ingresso
+		// Individua la posizione dell'ingresso
 		float d = sensors.checkDistanceSide();
-		if (d < 30) {
+		if (d < 25) {
 			gatePosition = 3;
-		} else if (d < 60) {
+		} else if (d < 55) {
 			gatePosition = 2;
-		} else if (d < 90) {
+		} else if (d < 85) {
 			gatePosition = 1;
 		} else {
 			gatePosition = 0;
 		}
 		System.out.println("gatePosition=" + gatePosition);
 
-		// Faccio tutto il perimetro per trovare la zona vittime
-		// Se non sono entrato dall'angolo sinistro, mi giro per seguire la parete
-		if (gatePosition > 0) {
-			// Giro a sinistra e cammino per spostarmi dall'ingresso
-			motors.spin(Motors.BASE_SPEED, 90);
-			motors.travel(Motors.BASE_SPEED, 20);
-		}
+		// Fa tutto il perimetro per trovare la zona vittime, inizia girando a sinistra
+		motors.spin(Motors.BASE_SPEED, 90);
 
-		// Vado avanti fino alla parete
-		// Qui potrei usare il PID per mantenere una distanza costante dalla parete...
-		// Mentre il robot cammina devo verificare:
-		// Se c'è una pallina sul percorso (nel caso, la raccolgo)
-		// Se nell'angolo c'è la zona sicura (nel caso, memorizzo la posizione)
+		// Mentre il robot cammina, verifica:
+		// - Se c'è una pallina sul percorso (nel caso, la raccoglie)
+		// - Se nell'angolo c'è la zona sicura (nel caso, memorizza la posizione)
+		// Ripete per ogni parete finché non trova la zona sicura
 		int sidesExplored = 0;
-		do { // Ripeto per ogni parete, finché non trovo la zona sicura
-			while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) { // Vado avanti finché non trovo la parete
+		do {
+			// Va avanti finché non trova la parete
+			while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
+				sensors.checkTouches();
 				if (sensors.isFwdLeftPressed() && sensors.isFwdRightPressed()) {
-					// Se ho toccato con i sensori senza arrivare al muro, ho trovato la zona sicura
+					// Se ha toccato con i sensori senza arrivare al muro, ha trovato la zona sicura
 					safePosition = sidesExplored;
 					break;
 				} else if (sensors.isFwdLeftPressed()) {
-					// Se uno dei sensori ha toccato, faccio allineare l'altro
+					// Se uno dei sensori ha toccato, fa allineare l'altro
 					motors.drive(0, Motors.BASE_SPEED);
 				} else if (sensors.isFwdRightPressed()) {
 					motors.drive(Motors.BASE_SPEED, 0);
-				} else if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > 40) {
-					// Mi sto avvicinando a una pallina: mi fermo per raccoglierla
+				} else if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > 10) {
+					// Si sta avvicinando a una pallina: si ferma per raccoglierla
 					motors.travel(Motors.BASE_SPEED, -5);
 					motors.bladeLower();
 					motors.travel(Motors.BASE_SPEED, 10);
@@ -249,81 +312,64 @@ public class Main {
 				}
 			}
 			if (safePosition < 0) {
-				// Se non ho trovato la zona sicura, giro a destra di 90 gradi e riparto
+				// Se non ha trovato la zona sicura, gira a destra di 90 gradi e riparte
 				motors.spin(Motors.BASE_SPEED, -90);
+				sidesExplored++;
+				alignBackwards();
 			}
 		} while (safePosition < 0 && sidesExplored < 4);
 
-		motors.travel(Motors.BASE_SPEED, -5);
-		motors.spin(Motors.BASE_SPEED, 180);
+		// Trovato la zona sicura: fa inversione e vi si appoggia
 		motors.travel(Motors.BASE_SPEED, -10);
-		// Se abbiamo delle palline, facciamo la manovra di scarico
+		motors.spin(Motors.BASE_SPEED, 180);
+		alignBackwards();
+		// Se ci sono delle palline a bordo fa la manovra di scarico
 		if (loaded) {
-			motors.containerOpen();
-			motors.travel(Motors.BASE_SPEED, 1);
-			motors.travel(Motors.BASE_SPEED, -2);
-			motors.containerClose();
+			unloadVictims();
 		}
 		motors.travel(Motors.BASE_SPEED, 10);
 
-		// Una volta trovata la zona sicura, parto con le spazzate in orizzontale
+		// Una volta trovata la zona sicura, parte con le spazzate in orizzontale
 		// Il robot si mette in posizione per iniziare le spazzate
 		int signum = safePosition % 2 == 0 ? 1 : -1;
-		motors.spin(Motors.BASE_SPEED, -signum * 45);
+		motors.spin(Motors.BASE_SPEED, signum * -45);
 
 		// Ogni spazzata a circa 20cm di distanza dall'altra
-		// Ad ogni spazzata raccolgo le palline e le riporto nella zona sicura
-		// Se manca meno di un minuto esco dal ciclo e cerco l'uscita
+		// Ad ogni spazzata raccoglie le palline e le riporta nella zona sicura
+		// Se manca meno di un minuto esce dal ciclo e cerca l'uscita
 		motors.bladeLower();
-		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7 * 60 * 1000); i++) {
-			// Percorro la zona all'andata
-			while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
-				// Vado avanti finché non trovo la parete
-				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-			}
-			// Recupero eventuali palline
-			motors.bladeLift();
+		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7 * 60 * 1_000); i++) {
+			// Percorre la zona all'andata
+			driveUntilWall();
 			// Inversione di marcia
 			motors.spin(Motors.BASE_SPEED, signum * 90);
-			motors.travel(Motors.BASE_SPEED, 15);
-			motors.spin(Motors.BASE_SPEED, signum * 90);
 			motors.bladeLower();
-			// Percorro la zona al ritorno
-			while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
-				// Vado avanti finché non trovo la parete
-				motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-			}
-			// Recupero eventuali palline
+			motors.travel(Motors.BASE_SPEED, 15);
+			// Recupera eventuali palline
 			motors.bladeLift();
-			// Manovra per scaricare
+			motors.bladeLower();
 			motors.spin(Motors.BASE_SPEED, signum * 90);
-			// Mi appoggio alla zona sicura
-			while (!sensors.isFwdLeftPressed() || !sensors.isFwdRightPressed()) {
-				if (sensors.isFwdLeftPressed()) {
-					motors.drive(0, Motors.BASE_SPEED);
-				} else if (sensors.isFwdRightPressed()) {
-					motors.drive(Motors.BASE_SPEED, 0);
-				} else {
-					motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
-				}
-			}
-			// Scarico palline
-			motors.travel(Motors.BASE_SPEED, -5);
-			motors.spin(Motors.BASE_SPEED, 180);
-			motors.travel(Motors.BASE_SPEED, -10);
-			motors.containerOpen();
-			motors.travel(Motors.BASE_SPEED, 1);
-			motors.travel(Motors.BASE_SPEED, -2);
-			motors.containerClose();
-			if (i == 2 + zoneOrientation) {
-				// Se ho completato i passaggi, finisco di spazzare
+			// Percorre la zona al ritorno
+			driveUntilWall();
+			// Manovra per scaricare: si appoggia alla zona sicura e scarica palline
+			motors.spin(Motors.BASE_SPEED, signum * -90);
+			if (loaded) {
+				alignBackwards();
+				unloadVictims();
+				// Si prepara per un'altra spazzata
+				motors.bladeLower();
+				motors.travel(Motors.BASE_SPEED, 10);
+				motors.spin(Motors.BASE_SPEED, signum * 45);
+				motors.travel(Motors.BASE_SPEED, 15 + i * 30);
+				// Recupera eventuali palline
+				motors.bladeLift();
+			} else if (i == 2 + zoneOrientation) {
+				// Se ha completato i passaggi, smette di spazzare
+				alignBackwards();
 				break;
 			}
-			// Mi preparo per un'altra spazzata
-			motors.bladeLower();
-			motors.spin(Motors.BASE_SPEED, signum * 45);
-			motors.travel(Motors.BASE_SPEED, 30 + i * 30);
-			motors.spin(Motors.BASE_SPEED, -signum * 90);
+			motors.travel(Motors.BASE_SPEED, 15);
+			motors.spin(Motors.BASE_SPEED, signum * -90);
 		}
 
 		// Uscita dalla zona vittime
@@ -356,15 +402,23 @@ public class Main {
 			}
 			break;
 		case 3:
-			// Possibile solo se zoneOrientation == 0
 			motors.spin(Motors.BASE_SPEED, 45);
 			motors.travel(Motors.BASE_SPEED, (3 - gatePosition) * 30);
 			motors.spin(Motors.BASE_SPEED, 90);
 			break;
 		}
-		motors.travel(Motors.BASE_SPEED, 30);
+
+		// All'uscita dalla zona vittime si torna al seguilinea
+		sensors.setRescueLineMode();
+		sensors.checkColors();
+		while (!sensors.isAnySilver()) {
+			motors.drive(Motors.BASE_SPEED, Motors.BASE_SPEED);
+			sensors.checkColors();
+		}
+		motors.travel(Motors.BASE_SPEED, 10);
 		boolean foundBlack = false;
 		for (int i = 0; i < 7; i++) {
+			sensors.checkColors();
 			if (sensors.isAnyBlack()) {
 				foundBlack = true;
 				break;
@@ -373,6 +427,7 @@ public class Main {
 		}
 		if (!foundBlack) {
 			for (int i = 0; i < 14; i++) {
+				sensors.checkColors();
 				if (sensors.isAnyBlack()) {
 					foundBlack = true;
 					break;
@@ -381,15 +436,15 @@ public class Main {
 			}
 		}
 		motors.resetTachoCount();
-		// Torna al seguilinea
 		return;
 	}
 
 	/***** Procedure di servizio *****/
 
 	// Aggiramento ostacolo
-	public static void navigateObstacle() {
+	private void navigateObstacle() {
 		motors.stop();
+		System.out.println("Aggira ostacolo");
 
 		// Raddrizzo il robot rispetto alla linea nera
 		if (sensors.getColorsLR().equals("wb")) {
@@ -423,4 +478,45 @@ public class Main {
 		motors.resetTachoCount();
 	}
 
+	// Allineamento al muro
+	private void alignBackwards() {
+		System.out.println("Allineamento");
+		while (true) {
+			sensors.checkTouches();
+			if (sensors.isBackLeftPressed() && sensors.isBackRightPressed()) {
+				sensors.resetGyro();
+				return;
+			} else if (sensors.isBackLeftPressed()) {
+				motors.drive(0, -Motors.BASE_SPEED);
+			} else if (sensors.isBackRightPressed()) {
+				motors.drive(-Motors.BASE_SPEED, 0);
+			} else {
+				motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
+			}
+		}
+	}
+
+	// Va avanti finché non trova la parete
+	private void driveUntilWall() {
+		while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
+			if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
+				// Si sta avvicinando a una pallina: si ferma per raccoglierla
+				motors.travel(Motors.BASE_SPEED, -5);
+				motors.bladeLower();
+				motors.travel(Motors.BASE_SPEED, 10);
+				motors.bladeLift();
+				loaded = true;
+			} else {
+				motors.drive(Motors.MAX_SPEED, Motors.MAX_SPEED);
+			}
+		}
+	}
+
+	// Scarica palline
+	private void unloadVictims() {
+		motors.containerOpen();
+		motors.travel(Motors.BASE_SPEED, 2);
+		motors.travel(Motors.MAX_SPEED, -3);
+		motors.containerClose();
+	}
 }

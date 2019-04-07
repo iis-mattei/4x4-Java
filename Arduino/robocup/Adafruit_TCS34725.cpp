@@ -16,9 +16,9 @@
 */
 /**************************************************************************/
 #ifdef __AVR
-  #include <avr/pgmspace.h>
+#include <avr/pgmspace.h>
 #elif defined(ESP8266)
-  #include <pgmspace.h>
+#include <pgmspace.h>
 #endif
 #include <stdlib.h>
 #include <math.h>
@@ -47,13 +47,13 @@ float powf(const float x, const float y)
 void Adafruit_TCS34725::write8 (uint8_t reg, uint32_t value)
 {
   Wire1.beginTransmission(TCS34725_ADDRESS);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   Wire1.write(TCS34725_COMMAND_BIT | reg);
   Wire1.write(value & 0xFF);
-  #else
+#else
   Wire1.send(TCS34725_COMMAND_BIT | reg);
   Wire1.send(value & 0xFF);
-  #endif
+#endif
   Wire1.endTransmission();
 }
 
@@ -65,19 +65,19 @@ void Adafruit_TCS34725::write8 (uint8_t reg, uint32_t value)
 uint8_t Adafruit_TCS34725::read8(uint8_t reg)
 {
   Wire1.beginTransmission(TCS34725_ADDRESS);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   Wire1.write(TCS34725_COMMAND_BIT | reg);
-  #else
+#else
   Wire1.send(TCS34725_COMMAND_BIT | reg);
-  #endif
+#endif
   Wire1.endTransmission();
 
   Wire1.requestFrom(TCS34725_ADDRESS, 1);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   return Wire1.read();
-  #else
+#else
   return Wire1.receive();
-  #endif
+#endif
 }
 
 /**************************************************************************/
@@ -90,21 +90,21 @@ uint16_t Adafruit_TCS34725::read16(uint8_t reg)
   uint16_t x; uint16_t t;
 
   Wire1.beginTransmission(TCS34725_ADDRESS);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   Wire1.write(TCS34725_COMMAND_BIT | reg);
-  #else
+#else
   Wire1.send(TCS34725_COMMAND_BIT | reg);
-  #endif
+#endif
   Wire1.endTransmission();
 
   Wire1.requestFrom(TCS34725_ADDRESS, 2);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   t = Wire1.read();
   x = Wire1.read();
-  #else
+#else
   t = Wire1.receive();
   x = Wire1.receive();
-  #endif
+#endif
   x <<= 8;
   x |= t;
   return x;
@@ -317,18 +317,18 @@ void Adafruit_TCS34725::setInterrupt(boolean i) {
 
 void Adafruit_TCS34725::clearInterrupt(void) {
   Wire1.beginTransmission(TCS34725_ADDRESS);
-  #if ARDUINO >= 100
+#if ARDUINO >= 100
   Wire1.write(TCS34725_COMMAND_BIT | 0x66);
-  #else
+#else
   Wire1.send(TCS34725_COMMAND_BIT | 0x66);
-  #endif
+#endif
   Wire1.endTransmission();
 }
 
 
 void Adafruit_TCS34725::setIntLimits(uint16_t low, uint16_t high) {
-   write8(0x04, low & 0xFF);
-   write8(0x05, low >> 8);
-   write8(0x06, high & 0xFF);
-   write8(0x07, high >> 8);
+  write8(0x04, low & 0xFF);
+  write8(0x05, low >> 8);
+  write8(0x06, high & 0xFF);
+  write8(0x07, high >> 8);
 }

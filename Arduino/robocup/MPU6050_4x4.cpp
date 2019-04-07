@@ -1,19 +1,19 @@
 #include "MPU6050_4x4.h"
 #include "Arduino.h"
 
-MPU6050::MPU6050(SoftwareWire &w){
+MPU6050::MPU6050(SoftwareWire &w) {
   wire = &w;
   accCoef = 0.02f;
   gyroCoef = 0.98f;
 }
 
-MPU6050::MPU6050(SoftwareWire &w, float aC, float gC){
+MPU6050::MPU6050(SoftwareWire &w, float aC, float gC) {
   wire = &w;
   accCoef = aC;
   gyroCoef = gC;
 }
 
-void MPU6050::begin(){
+void MPU6050::begin() {
   writeMPU6050(MPU6050_SMPLRT_DIV, 0x00);
   writeMPU6050(MPU6050_CONFIG, 0x00);
   writeMPU6050(MPU6050_GYRO_CONFIG, 0x08);
@@ -27,7 +27,7 @@ void MPU6050::begin(){
   preInterval = millis();
 }
 
-void MPU6050::writeMPU6050(byte reg, byte data){
+void MPU6050::writeMPU6050(byte reg, byte data) {
   wire->beginTransmission(MPU6050_ADDR);
   wire->write(reg);
   wire->write(data);
@@ -43,25 +43,25 @@ byte MPU6050::readMPU6050(byte reg) {
   return data;
 }
 
-void MPU6050::setGyroOffsets(float x, float y, float z){
+void MPU6050::setGyroOffsets(float x, float y, float z) {
   gyroXoffset = x;
   gyroYoffset = y;
   gyroZoffset = z;
 }
 
-void MPU6050::calcGyroOffsets(bool console, uint16_t delayBefore, uint16_t delayAfter){
-	float x = 0, y = 0, z = 0;
-	int16_t rx, ry, rz;
+void MPU6050::calcGyroOffsets(bool console, uint16_t delayBefore, uint16_t delayAfter) {
+  float x = 0, y = 0, z = 0;
+  int16_t rx, ry, rz;
 
   delay(delayBefore);
-	if(console){
+  if (console) {
     Serial.println();
     Serial.println("========================================");
     Serial.println("Calculating gyro offsets");
     Serial.print("DO NOT MOVE MPU6050");
   }
-  for(int i = 0; i < 3000; i++){
-    if(console && i % 1000 == 0){
+  for (int i = 0; i < 3000; i++) {
+    if (console && i % 1000 == 0) {
       Serial.print(".");
     }
     wire->beginTransmission(MPU6050_ADDR);
@@ -81,23 +81,23 @@ void MPU6050::calcGyroOffsets(bool console, uint16_t delayBefore, uint16_t delay
   gyroYoffset = y / 3000;
   gyroZoffset = z / 3000;
 
-  if(console){
+  if (console) {
     Serial.println();
     Serial.println("Done!!!");
-    Serial.print("X : ");Serial.println(gyroXoffset);
-    Serial.print("Y : ");Serial.println(gyroYoffset);
-    Serial.print("Z : ");Serial.println(gyroZoffset);
+    Serial.print("X : "); Serial.println(gyroXoffset);
+    Serial.print("Y : "); Serial.println(gyroYoffset);
+    Serial.print("Z : "); Serial.println(gyroZoffset);
     Serial.println("Program will start after 3 seconds");
     Serial.print("========================================");
-		delay(delayAfter);
-	}
+    delay(delayAfter);
+  }
 }
 
-void MPU6050::update(){
-	wire->beginTransmission(MPU6050_ADDR);
-	wire->write(0x3B);
-	wire->endTransmission(false);
-	wire->requestFrom((int)MPU6050_ADDR, 14);
+void MPU6050::update() {
+  wire->beginTransmission(MPU6050_ADDR);
+  wire->write(0x3B);
+  wire->endTransmission(false);
+  wire->requestFrom((int)MPU6050_ADDR, 14);
 
   rawAccX = wire->read() << 8 | wire->read();
   rawAccY = wire->read() << 8 | wire->read();
@@ -136,4 +136,12 @@ void MPU6050::update(){
 
   preInterval = millis();
 
+}
+
+// Utilizza il registro 106 (0x6A) di MPU6050 (registro USER_CTRL)
+// Lascia invariati tutti i bit tranne l'ultimo, che va a 1 (bit SIG_COND_RST)
+void MPU6050::reset() {
+  byte curReg = readMPU6050(0x6A);
+  byte modReg = curReg | 0x01;
+  writeMPU6050(0x6A, modReg);
 }

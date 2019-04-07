@@ -1,10 +1,11 @@
-// Librerie di sistema
-#include <NewPing.h>
-#include <Wire.h>
 // Librerie custom, nella stessa directory del file .ino
 #include "Sensors.h"
 #include "MPU6050_4x4.h"
 #include "SoftwareWire.h"
+
+// Librerie di sistema
+#include <NewPing.h>
+#include <Wire.h>
 
 #define SLAVE_ADDRESS 0x04
 #define FWD_RIGHT 12
@@ -34,11 +35,13 @@ void setup() {
   pinMode(BACK_RIGHT, INPUT_PULLUP);
   pinMode(BACK_LEFT, INPUT_PULLUP);
   //  pinMode(SILVER, INPUT_PULLUP);
+
   Serial.begin(9600);
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(receiveData);
   Wire.onRequest(sendData);
   Serial.println("Ready!");
+
   // Per il test dei sensori di colore
   //  sensors->readAllColors();
   //  int blackLevel = sensors->detectBlack();
@@ -52,10 +55,6 @@ void loop() {
   if (rescueLineMode) {
     sensors->readAllColors();
     //    sensors->debugColors();
-    //    if(!lSilver) {
-    //      lSilver = digitalRead(SILVER);
-    //    }
-    //    Serial.println(lSilver)  ;
   }
 
   dist = ultra.ping_cm();
@@ -78,14 +77,13 @@ void receiveData(int byteCount) {
   }
 }
 
-/*
-   Comandi per il dialogo con Arduino:
+/* Comandi per il dialogo con Arduino:
    B = rilevazione del livello del nero
    C = checkColors: lux + colori di tutti i sensori
    D = misurazione distanza con sensore a ultrasuoni
    G = dati giroscopio
+   R = reset giroscopio
    T = tutti i 4 sensori di tocco
-   S = controllo argento (disattivato)
    Z = attiva modalità zona vittime
    L = attiva modalità seguilinea
 */
@@ -115,6 +113,9 @@ void sendData() {
     Wire.write(highByte(gyroY));
     Wire.write(lowByte(gyroZ));
     Wire.write(highByte(gyroZ));
+  } else if(request == 'R') {
+    mpu6050.reset();
+    Wire.write(true);
   } else if (request == 'T') {
     if (digitalRead(FWD_RIGHT) == HIGH) {
       //      Serial.println("Anteriore Destro premuto");
@@ -140,21 +141,11 @@ void sendData() {
     } else {
       Wire.write(false);
     }
-    //  } else if(request == 'S') {
-    //    if (lSilver == LOW) {
-    //      //Serial.println("Argento Trovato");
-    //      Wire.write(true);
-    //    } else {
-    //      Wire.write(false);
-    //    }
   } else if (request == 'Z') {
-    // Imposto la modalità zona vittime
     rescueLineMode = false;
     Wire.write(true);
   } else if (request == 'L') {
-    // Imposto la modalità seguilinea
     rescueLineMode = true;
-    //    lSilver = false;
     Wire.write(true);
   }
 }

@@ -18,35 +18,31 @@ public class Sensors {
 	private int luxL, luxC, luxR, gyroX, gyroY, gyroZ;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft;
 
-	private int uintToInt(byte lsb, byte msb) {
-		return (int) ((lsb & 0xFF) | ((msb & 0x7F) << 8));
-	}
-
-	public Sensors() {		
+	public Sensors() {
 		boolean sensorOk = false;
 		do {
 			try {
 				usFwdHigh = new EV3UltrasonicSensor(SensorPort.S2);
 				sensorOk = true;
 			} catch (Exception e) {
-				System.out.println("Errore ultrasuoni S2...");
+				System.out.println("Errore S2");
 				sensorOk = false;
 			}
 		} while (!sensorOk);
 		System.out.println("S2 OK");
-		
+
 		sensorOk = false;
 		do {
 			try {
 				usSide = new EV3UltrasonicSensor(SensorPort.S3);
 				sensorOk = true;
 			} catch (Exception e) {
-				System.out.println("Errore ultrasuoni S3...");
+				System.out.println("Errore S3");
 				sensorOk = false;
 			}
 		} while (!sensorOk);
 		System.out.println("S3 OK");
-		
+
 		spFwdHigh = usFwdHigh.getDistanceMode();
 		spSide = usSide.getDistanceMode();
 		sample = new float[spFwdHigh.sampleSize()];
@@ -69,15 +65,15 @@ public class Sensors {
 	public int detectBlack() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('B', buffReadResponse, buffReadResponse.length);
-		return uintToInt(buffReadResponse[0], buffReadResponse[1]);
+		return EndianTools.decodeUShortLE(buffReadResponse, 0);
 	}
 
 	public void checkColors() {
 		byte[] buffReadResponse = new byte[9];
 		arduino.getData('C', buffReadResponse, buffReadResponse.length);
-		luxL = uintToInt(buffReadResponse[0], buffReadResponse[1]);
-		luxC = uintToInt(buffReadResponse[2], buffReadResponse[3]);
-		luxR = uintToInt(buffReadResponse[4], buffReadResponse[5]);
+		luxL = EndianTools.decodeUShortLE(buffReadResponse, 0);
+		luxC = EndianTools.decodeUShortLE(buffReadResponse, 2);
+		luxR = EndianTools.decodeUShortLE(buffReadResponse, 4);
 		colorsLR = "" + (char) buffReadResponse[6] + (char) buffReadResponse[8];
 		colorC = "" + (char) buffReadResponse[7];
 	}
@@ -91,7 +87,11 @@ public class Sensors {
 	}
 
 	public boolean isAnyBlack() {
-		return (colorC.equals("b") || colorsLR.charAt(0) == 'n' || colorsLR.charAt(1) == 'b');
+		return (colorC.equals("b") || colorsLR.charAt(0) == 'b' || colorsLR.charAt(1) == 'b');
+	}
+
+	public boolean isAnySilver() {
+		return (colorC.equals("s") || colorsLR.charAt(0) == 's' || colorsLR.charAt(1) == 's');
 	}
 
 	public int getDelta() {
@@ -135,29 +135,23 @@ public class Sensors {
 		return touchBackLeft;
 	}
 
-//	public boolean isSilver() {
-//		byte[] buffReadResponse = new byte[1];
-//		arduino.getData('S', buffReadResponse, buffReadResponse.length);
-//		return (buffReadResponse[0] != 0);
-//	}
-	
 	public int checkDistanceFwdHigh() {
 		spFwdHigh.fetchSample(sample, 0);
-		return (int) (sample[0]*100);
+		return (int) Math.round(sample[0] * 100);
 	}
-	
+
 	public int checkDistanceSide() {
 		spSide.fetchSample(sample, 0);
-		return (int) (sample[0]*100);
+		return (int) Math.round(sample[0] * 100);
 	}
 
 	public int checkDistanceFwdLow() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('D', buffReadResponse, buffReadResponse.length);
-		int dist  = EndianTools.decodeUShortLE(buffReadResponse, 0);
+		int dist = EndianTools.decodeUShortLE(buffReadResponse, 0);
 		return dist;
 	}
-	
+
 	public void checkGyro() {
 		byte[] buffReadResponse = new byte[6];
 		arduino.getData('G', buffReadResponse, buffReadResponse.length);
@@ -165,16 +159,23 @@ public class Sensors {
 		gyroY = EndianTools.decodeShortLE(buffReadResponse, 2);
 		gyroZ = EndianTools.decodeShortLE(buffReadResponse, 4);
 	}
-	
+
 	public int getGyroX() {
-		return gyroX;
+		return (gyroX % 360);
 	}
-	
+
 	public int getGyroY() {
-		return gyroY;
+		return (gyroY % 360);
 	}
-	
+
 	public int getGyroZ() {
-		return gyroZ;
-	}	
+		return (gyroZ % 360);
+	}
+
+	public boolean resetGyro() {
+		byte[] buffReadResponse = new byte[1];
+		arduino.getData('R', buffReadResponse, buffReadResponse.length);
+		boolean retval = buffReadResponse[0] != 0;
+		return retval;
+	}
 }

@@ -183,7 +183,7 @@ void SoftwareWire::begin(void)
 
   // When a I2C transmission would start immediate, it could fail when only the internal pullup resistors
   // are used, and the signals were just now turned high with i2c_init().
-  if( _pullups)
+  if ( _pullups)
     delay(2);           // 1ms didn't always work.
 }
 
@@ -197,11 +197,11 @@ void SoftwareWire::beginTransmission(uint8_t address)
 
   // check return value of the start condition.
   // It indicates if the i2c bus is okay.
-  if(i2c_start())
+  if (i2c_start())
   {
     uint8_t rc = i2c_write((address << 1) | 0);       // The r/w bit is zero for write
 
-    if( rc == 0)                                      // a sda zero from Slave for the 9th bit is ack
+    if ( rc == 0)                                     // a sda zero from Slave for the 9th bit is ack
     {
       _transmission = SOFTWAREWIRE_NO_ERROR;
     }
@@ -228,12 +228,12 @@ void SoftwareWire::beginTransmission(int address)
 //
 uint8_t SoftwareWire::endTransmission(boolean sendStop)
 {
-  if(sendStop)
+  if (sendStop)
     i2c_stop();
   else
     i2c_repstart();
 
-  return(_transmission);          // return the transmission status that was set during writing address and data
+  return (_transmission);         // return the transmission status that was set during writing address and data
 }
 
 
@@ -242,7 +242,7 @@ uint8_t SoftwareWire::endTransmission(boolean sendStop)
 //
 uint8_t SoftwareWire::requestFrom(uint8_t address, uint8_t size, boolean sendStop)
 {
-  uint8_t n=0;             // number of valid received bytes. Start with 0 bytes.
+  uint8_t n = 0;           // number of valid received bytes. Start with 0 bytes.
 
   // The stransmission status is set, allthough it is not returned.
   // Start with the status : no error
@@ -255,19 +255,19 @@ uint8_t SoftwareWire::requestFrom(uint8_t address, uint8_t size, boolean sendSto
 
   boolean bus_okay = i2c_start();
 
-  if(bus_okay)
+  if (bus_okay)
   {
     uint8_t rc = i2c_write((address << 1) | 1);          // The r/w bit is '1' to read
 
-    if( rc == 0)                                         // a sda zero from Slave for the 9th bit is ack
+    if ( rc == 0)                                        // a sda zero from Slave for the 9th bit is ack
     {
       _transmission = SOFTWAREWIRE_NO_ERROR;
 
       // TODO: check if the Slave returns less bytes than requested.
 
-      for(; n<size; n++)
+      for (; n < size; n++)
       {
-        if( n < (size - 1))
+        if ( n < (size - 1))
           rxBuf[n] = i2c_read(true);        // read with ack
         else
           rxBuf[n] = i2c_read(false);       // last byte, read with nack
@@ -285,12 +285,12 @@ uint8_t SoftwareWire::requestFrom(uint8_t address, uint8_t size, boolean sendSto
     _transmission = SOFTWAREWIRE_OTHER;
   }
 
-  if(sendStop || _transmission != SOFTWAREWIRE_NO_ERROR)
+  if (sendStop || _transmission != SOFTWAREWIRE_NO_ERROR)
     i2c_stop();
   else
     i2c_repstart();
 
-  return( n);
+  return ( n);
 }
 
 
@@ -307,9 +307,9 @@ uint8_t SoftwareWire::requestFrom(int address, int size, boolean sendStop)
 uint8_t SoftwareWire::write(uint8_t data)
 {
   // When there was an error during the transmission, no more bytes are transmitted.
-  if( _transmission == SOFTWAREWIRE_NO_ERROR)
+  if ( _transmission == SOFTWAREWIRE_NO_ERROR)
   {
-    if( i2c_write(data) == 0)                // a sda zero from Slave for the 9th bit is ack
+    if ( i2c_write(data) == 0)               // a sda zero from Slave for the 9th bit is ack
     {
       _transmission = SOFTWAREWIRE_NO_ERROR;
     }
@@ -319,19 +319,19 @@ uint8_t SoftwareWire::write(uint8_t data)
     }
   }
 
-  return(1);             // ignore any errors, return the number of bytes that are written.
+  return (1);            // ignore any errors, return the number of bytes that are written.
 }
 
 
 //
 uint8_t SoftwareWire::write(const uint8_t* data, uint8_t quantity)
 {
-  for (uint8_t i=0; i<quantity; i++)
+  for (uint8_t i = 0; i < quantity; i++)
   {
     write(data[i]);
   }
 
-  return(quantity);          // ignore any errors, return the number of bytes that are written.
+  return (quantity);         // ignore any errors, return the number of bytes that are written.
 }
 
 
@@ -341,13 +341,13 @@ uint8_t SoftwareWire::write(char* data)
   int n = strlen(data);
   write((uint8_t*)data, n);
 
-  return(n);           // ignore any errors, return the number of bytes that are written.
+  return (n);          // ignore any errors, return the number of bytes that are written.
 }
 
 
 int SoftwareWire::available(void)
 {
-  return(rxBufPut - rxBufGet);
+  return (rxBufPut - rxBufGet);
 }
 
 
@@ -356,7 +356,7 @@ int SoftwareWire::peek(void)
 {
   int data;
 
-  if( rxBufPut > rxBufGet)
+  if ( rxBufPut > rxBufGet)
   {
     data = rxBuf[rxBufGet];
   }
@@ -365,7 +365,7 @@ int SoftwareWire::peek(void)
     data = -1;
   }
 
-  return(data);
+  return (data);
 }
 
 
@@ -376,7 +376,7 @@ int SoftwareWire::read(void)
 {
   int data;
 
-  if( rxBufPut > rxBufGet)
+  if ( rxBufPut > rxBufGet)
   {
     data = rxBuf[rxBufGet];
     rxBufGet++;
@@ -386,7 +386,7 @@ int SoftwareWire::read(void)
     data = -1;
   }
 
-  return(data);
+  return (data);
 }
 
 
@@ -395,16 +395,16 @@ int SoftwareWire::readBytes(uint8_t* buf, uint8_t size)
   int data;
   int n;
 
-  for( n=0; n<size; n++)
+  for ( n = 0; n < size; n++)
   {
     data = read();
-    if( data == -1)
+    if ( data == -1)
       break;
     else
       buf[n] = (uint8_t) data;
   }
 
-  return(n);
+  return (n);
 }
 
 
@@ -448,7 +448,7 @@ void SoftwareWire::setClock(uint32_t clock)
   _i2cdelay = ( (F_CPU / 32L) / clock );               // The delay in microseconds, '32' is for this code.
   unsigned int delayByCode = (F_CPU / 5000000L);       // Add some delay for the code, just a guess
 
-  if( _i2cdelay > delayByCode)
+  if ( _i2cdelay > delayByCode)
     _i2cdelay -= delayByCode;
   else
     _i2cdelay = 0;
@@ -491,12 +491,12 @@ void SoftwareWire::printStatus( Print& Ser)
   Ser.println(_transmission);
   Ser.print(F("  _i2cdelay = "));
   Ser.print(_i2cdelay);
-  if( _i2cdelay == 0)
+  if ( _i2cdelay == 0)
     Ser.print(F(" (free running)"));
   Ser.println();
   Ser.print(F("  _pullups = "));
   Ser.print(_pullups);
-  if( _pullups)
+  if ( _pullups)
     Ser.print(F(" (enabled)"));
   Ser.println();
   Ser.print(F("  _timeout = "));
@@ -512,11 +512,11 @@ void SoftwareWire::printStatus( Print& Ser)
   Ser.print(F("  available() = "));
   Ser.println(available());
   Ser.print(F("  rxBuf (hex) = "));
-  for(int ii=0; ii<SOFTWAREWIRE_BUFSIZE; ii++)
+  for (int ii = 0; ii < SOFTWAREWIRE_BUFSIZE; ii++)
   {
-    if(rxBuf[ii] < 16)
+    if (rxBuf[ii] < 16)
       Ser.print(F("0"));
-    Ser.print(rxBuf[ii],HEX);
+    Ser.print(rxBuf[ii], HEX);
     Ser.print(F(" "));
   }
   Ser.println();
@@ -558,7 +558,7 @@ void SoftwareWire::printStatus( Print& Ser)
   Ser.println("  Scanning...");
 
   nDevices = 0;
-  for(address=1; address<127; address++ )
+  for (address = 1; address < 127; address++ )
   {
     // The i2c_scanner uses the return value of
     // the Write.endTransmisstion to see if
@@ -569,19 +569,19 @@ void SoftwareWire::printStatus( Print& Ser)
     if (error == 0)
     {
       Ser.print("  I2C device found at address 0x");
-      if (address<16)
+      if (address < 16)
         Ser.print("0");
-      Ser.print(address,HEX);
+      Ser.print(address, HEX);
       Ser.println("  !");
 
       nDevices++;
     }
-    else if (error==4)
+    else if (error == 4)
     {
       Ser.print("  Unknow error at address 0x");
-      if (address<16)
+      if (address < 16)
         Ser.print("0");
-      Ser.println(address,HEX);
+      Ser.println(address, HEX);
     }
   }
   if (nDevices == 0)
@@ -604,7 +604,7 @@ void SoftwareWire::printStatus( Print& Ser)
 //
 void SoftwareWire::i2c_writebit(uint8_t c)
 {
-  if(c==0)
+  if (c == 0)
   {
     i2c_sda_lo();
   }
@@ -619,14 +619,14 @@ void SoftwareWire::i2c_writebit(uint8_t c)
   i2c_scl_hi();                     // clock high: the Slave will read the sda signal
 
   // Check if clock stretching by the Slave should be detected.
-  if( _stretch)
+  if ( _stretch)
   {
     // If the Slave was strechting the clock pulse, the clock would not go high immediately.
     // For example if the Slave is an Arduino, that has other interrupts running (for example Serial data).
     unsigned long prevMillis = millis();
-    while( i2c_scl_read() == 0)
+    while ( i2c_scl_read() == 0)
     {
-      if( millis() - prevMillis >= _timeout)
+      if ( millis() - prevMillis >= _timeout)
         break;
     };
   }
@@ -650,13 +650,13 @@ uint8_t SoftwareWire::i2c_readbit(void)
   i2c_scl_hi();
 
   // Check if clock stretching by the Slave should be detected.
-  if( _stretch)
+  if ( _stretch)
   {
     // Wait until the clock is high, the Slave could keep it low for clock stretching.
     unsigned long prevMillis = millis();
-    while( i2c_scl_read() == 0)
+    while ( i2c_scl_read() == 0)
     {
-      if( millis() - prevMillis >= _timeout)
+      if ( millis() - prevMillis >= _timeout)
         break;
     };
   }
@@ -672,7 +672,7 @@ uint8_t SoftwareWire::i2c_readbit(void)
   if (_i2cdelay != 0)
     delayMicroseconds(_i2cdelay);
 
-  return(c);
+  return (c);
 }
 
 
@@ -699,7 +699,7 @@ void SoftwareWire::i2c_init(void)
 
   i2c_sda_hi();
 
-  for( uint8_t i=0; i<4; i++)             // 4 times the normal delay, to claim the bus.
+  for ( uint8_t i = 0; i < 4; i++)        // 4 times the normal delay, to claim the bus.
   {
     if (_i2cdelay != 0)
       delayMicroseconds(_i2cdelay);
@@ -733,9 +733,9 @@ boolean SoftwareWire::i2c_start(void)
   // from a i2c Slave.
   uint8_t sda_status = i2c_sda_read();
   uint8_t scl_status = i2c_scl_read();
-  if(sda_status == 0 || scl_status == 0)
+  if (sda_status == 0 || scl_status == 0)
   {
-    return(false);
+    return (false);
   }
   else
   {
@@ -749,7 +749,7 @@ boolean SoftwareWire::i2c_start(void)
     if (_i2cdelay != 0)
       delayMicroseconds(_i2cdelay);
   }
-  return(true);
+  return (true);
 }
 
 
@@ -761,7 +761,7 @@ boolean SoftwareWire::i2c_start(void)
 void SoftwareWire::i2c_repstart(void)
 {
   i2c_sda_hi();
-//  i2c_scl_hi();               // ??????
+  //  i2c_scl_hi();               // ??????
 
   i2c_scl_lo();                         // force SCL low
 
@@ -776,14 +776,14 @@ void SoftwareWire::i2c_repstart(void)
   i2c_scl_hi();                        // release SCL
 
   // Check if clock stretching by the Slave should be detected.
-  if( _stretch)
+  if ( _stretch)
   {
     // If the Slave was strechting the clock pulse, the clock would not go high immediately.
     // For example if the Slave is an Arduino, that has other interrupts running (for example Serial data).
     unsigned long prevMillis = millis();
-    while( i2c_scl_read() == 0)
+    while ( i2c_scl_read() == 0)
     {
-      if( millis() - prevMillis >= _timeout)
+      if ( millis() - prevMillis >= _timeout)
         break;
     };
   }
@@ -816,15 +816,15 @@ void SoftwareWire::i2c_stop(void)
   i2c_scl_hi();
 
   // Check if clock stretching by the Slave should be detected.
-  if( _stretch)
+  if ( _stretch)
   {
     // Wait until the clock is high, the Slave could keep it low for clock stretching.
     // Clock pulse stretching during a stop condition seems odd, but when
     // the Slave is an Arduino, it might happen.
     unsigned long prevMillis = millis();
-    while( i2c_scl_read() == 0)
+    while ( i2c_scl_read() == 0)
     {
-      if( millis() - prevMillis >= _timeout)
+      if ( millis() - prevMillis >= _timeout)
         break;
     };
   }
@@ -848,13 +848,13 @@ void SoftwareWire::i2c_stop(void)
 //
 uint8_t SoftwareWire::i2c_write( uint8_t c )
 {
-  for ( uint8_t i=0; i<8; i++)
+  for ( uint8_t i = 0; i < 8; i++)
   {
     i2c_writebit(c & 0x80);           // highest bit first
     c <<= 1;
   }
 
-  return(i2c_readbit());
+  return (i2c_readbit());
 }
 
 
@@ -865,13 +865,13 @@ uint8_t SoftwareWire::i2c_read(boolean ack)
 {
   uint8_t res = 0;
 
-  for(uint8_t i=0; i<8; i++)
+  for (uint8_t i = 0; i < 8; i++)
   {
     res <<= 1;
     res |= i2c_readbit();
   }
 
-  if(ack)
+  if (ack)
   {
     i2c_writebit(0);
   }
@@ -880,13 +880,13 @@ uint8_t SoftwareWire::i2c_read(boolean ack)
     i2c_writebit(1);
   }
 
-  if(_i2cdelay != 0)
+  if (_i2cdelay != 0)
     delayMicroseconds(_i2cdelay);
 
-  return(res);
+  return (res);
 }
 
 // Preinstantiate Objects //////////////////////////////////////////////////////
 
-SoftwareWire Wire1 = SoftwareWire(A2,A3); // aggiunto per compatibiità con MUX che vuole un oggetto istanziato
-SoftwareWire Wire2 = SoftwareWire(A0,A1); // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato
+SoftwareWire Wire1 = SoftwareWire(A2, A3); // aggiunto per compatibiità con MUX che vuole un oggetto istanziato
+SoftwareWire Wire2 = SoftwareWire(A0, A1); // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato

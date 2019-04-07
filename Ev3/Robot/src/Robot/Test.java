@@ -35,10 +35,15 @@ public class Test {
 //			System.out.println("A: " + sensors.isSilver());
 //			Thread.sleep(1000);
 //		}
-		// TODO Auto-generated method stub
 //		containerOpen();
 //		System.out.println("inizio chiusura");
 //		containerClose();
+		sensors.checkGyro();
+		System.out.println("Z: " + sensors.getGyroZ());
+		motors.spin(Motors.BASE_SPEED, 180);
+		sensors.checkGyro();
+		System.out.println("Z: " + sensors.getGyroZ());
+		sensors.resetGyro();
 		sensors.checkGyro();
 		System.out.println("Z: " + sensors.getGyroZ());
 		motors.spin(Motors.BASE_SPEED, 180);
