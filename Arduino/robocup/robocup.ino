@@ -12,14 +12,12 @@
 #define FWD_LEFT 11
 #define BACK_RIGHT 10
 #define BACK_LEFT 9
-//  #define SILVER 13
 #define Trigger 7
 #define Echo 6
 #define Max_Distance 150
 
 long timer = 0;
 byte request;
-//  int lSilver;
 int gyroX, gyroY, gyroZ, dist;
 boolean rescueLineMode;
 
@@ -34,7 +32,6 @@ void setup() {
   pinMode(FWD_LEFT, INPUT_PULLUP);
   pinMode(BACK_RIGHT, INPUT_PULLUP);
   pinMode(BACK_LEFT, INPUT_PULLUP);
-  //  pinMode(SILVER, INPUT_PULLUP);
 
   Serial.begin(9600);
   Wire.begin(SLAVE_ADDRESS);

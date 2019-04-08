@@ -18,18 +18,26 @@ public class Main {
 
 	public static void main(String args[]) {
 		Button.DOWN.addKeyListener(new KeyListener() {
+			@SuppressWarnings("deprecation")
 			@Override
 			public void keyPressed(Key k) {
-				if(mainThread != null) {
+				if (mainThread != null) {
 					System.out.println("Riavvio...");
-				mainThread.interrupt();
-				try {
-					// Aspetta (fino a 3 secondi) che il thread sia terminato
-					mainThread.join(3_000);
-				} catch (InterruptedException e) {
-					System.out.println("InterruptedException");
-				}
-				mainThread.start();
+					try {
+						mainThread.stop();
+					} catch (ThreadDeath e) {
+						mainThread = new MainThread(deltaMax, startTime, sensors, motors);
+						mainThread.start();
+					}
+
+//					mainThread.interrupt();
+//					try {
+//						// Aspetta (fino a 3 secondi) che il thread sia terminato
+//						mainThread.join(3_000);
+//					} catch (InterruptedException e) {
+//						System.out.println("InterruptedException");
+//					}
+
 				}
 			}
 
@@ -59,7 +67,7 @@ public class Main {
 		startTime = new Date().getTime();
 		int blackLevel = sensors.detectBlack();
 		sensors.checkColors();
-		deltaMax = (int) Math.round(((sensors.getLuxL() + sensors.getLuxR()) / 2) - sensors.getLuxC());
+		deltaMax = (int) Math.round(sensors.getLuxL() - sensors.getLuxC());
 		System.out.println("blackLevel = " + blackLevel + "\tdeltaMax = " + deltaMax);
 
 		// Avvia il thread per seguilinea e zona vittime
@@ -93,7 +101,7 @@ class MainThread extends Thread {
 	public void run() {
 		lineFollower();
 	}
-	
+
 	@Override
 	public void interrupt() {
 		super.interrupt();
@@ -134,21 +142,19 @@ class MainThread extends Thread {
 				motors.travel(Motors.BASE_SPEED, -NO_BLACK_DIST - 5);
 			}
 
-			sensors.checkGyro();
-			if (Math.abs(sensors.getGyroY()) > 10) {
-				pidCorrection = 0.5;
-			} else if (doubleWhiteCounter > 0) {
-				pidCorrection = 1 + doubleWhiteCounter / 10;
-			} else {
-				pidCorrection = 1;
-			}
+//			sensors.checkGyro();
+//			if (Math.abs(sensors.getGyroY()) > 10) {
+//				pidCorrection = 0.5;
+//			} else{
+//				pidCorrection = 1;
+//			}
 
 			// Seguilinea con il PID
 			speeds = pid.getSpeed(sensors.getDelta());
 			// Adatta il PID alle condizioni della pista
-			for (int i = 0; i < speeds.length; i++) {
-				speeds[i] = (int) Math.round(speeds[i] * pidCorrection);
-			}
+//			for (int i = 0; i < speeds.length; i++) {
+//				speeds[i] = (int) Math.round(speeds[i] * pidCorrection);
+//			}
 
 			switch (sensors.getColorsLR()) {
 			case "ss":
@@ -248,6 +254,8 @@ class MainThread extends Thread {
 
 	private void evacuationZone() {
 		System.out.println("*** Zona Vittime ***");
+		Sound.playTone(440, 500); // LA4
+		Sound.playTone(523, 1000); // DO5
 		// zoneOrientation: 0 è larga (120x90), 1 è lunga (90x120)
 		// safePosition: 0 è l'angolo in basso a sinistra, gli altri in senso orario
 		// gatePosition: da 0 a 3, da sinistra a destra
@@ -258,7 +266,7 @@ class MainThread extends Thread {
 		sensors.setEvacuationZoneMode();
 
 		// Avanza per far entrare tutto il robot nella zona
-		motors.travel(Motors.BASE_SPEED, 10);
+		motors.travel(Motors.BASE_SPEED, 20);
 
 		// Individua la forma della zona vittime
 		if (sensors.checkDistanceFwdHigh() < 85) {
@@ -299,12 +307,13 @@ class MainThread extends Thread {
 					break;
 				} else if (sensors.isFwdLeftPressed()) {
 					// Se uno dei sensori ha toccato, fa allineare l'altro
-					motors.drive(0, Motors.BASE_SPEED);
+					motors.drive(-Motors.BASE_SPEED / 2, Motors.BASE_SPEED);
 				} else if (sensors.isFwdRightPressed()) {
-					motors.drive(Motors.BASE_SPEED, 0);
-				} else if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > 10) {
+					motors.drive(Motors.BASE_SPEED, -Motors.BASE_SPEED / 2);
+				} else if (sensors.checkDistanceFwdLow() < 7) {
 					// Si sta avvicinando a una pallina: si ferma per raccoglierla
-					motors.travel(Motors.BASE_SPEED, -5);
+					System.out.println("Raccogli pallina");
+					motors.travel(Motors.BASE_SPEED, -3);
 					motors.bladeLower();
 					motors.travel(Motors.BASE_SPEED, 10);
 					motors.bladeLift();
@@ -316,8 +325,10 @@ class MainThread extends Thread {
 			if (safePosition < 0) {
 				// Se non ha trovato la zona sicura, gira a destra di 90 gradi e riparte
 				motors.spin(Motors.BASE_SPEED, -90);
+				if (sidesExplored != 0 || gatePosition != 0) {
+					alignBackwards();
+				}
 				sidesExplored++;
-				alignBackwards();
 			}
 		} while (safePosition < 0 && sidesExplored < 4);
 
@@ -339,7 +350,6 @@ class MainThread extends Thread {
 		// Ogni spazzata a circa 20cm di distanza dall'altra
 		// Ad ogni spazzata raccoglie le palline e le riporta nella zona sicura
 		// Se manca meno di un minuto esce dal ciclo e cerca l'uscita
-		motors.bladeLower();
 		for (int i = 0; (i < 3 + zoneOrientation) && (new Date().getTime() < startTime + 7 * 60 * 1_000); i++) {
 			// Percorre la zona all'andata
 			driveUntilWall();
@@ -489,9 +499,9 @@ class MainThread extends Thread {
 				sensors.resetGyro();
 				return;
 			} else if (sensors.isBackLeftPressed()) {
-				motors.drive(0, -Motors.BASE_SPEED);
+				motors.drive(-Motors.BASE_SPEED / 2, -Motors.BASE_SPEED);
 			} else if (sensors.isBackRightPressed()) {
-				motors.drive(-Motors.BASE_SPEED, 0);
+				motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED / 2);
 			} else {
 				motors.drive(-Motors.BASE_SPEED, -Motors.BASE_SPEED);
 			}
@@ -501,9 +511,9 @@ class MainThread extends Thread {
 	// Va avanti finché non trova la parete
 	private void driveUntilWall() {
 		while (sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
-			if (sensors.checkDistanceFwdLow() < 5 && sensors.checkDistanceFwdHigh() > OBSTACLE_DIST) {
+			if (sensors.checkDistanceFwdLow() < 7) {
 				// Si sta avvicinando a una pallina: si ferma per raccoglierla
-				motors.travel(Motors.BASE_SPEED, -5);
+				motors.travel(Motors.BASE_SPEED, -3);
 				motors.bladeLower();
 				motors.travel(Motors.BASE_SPEED, 10);
 				motors.bladeLift();

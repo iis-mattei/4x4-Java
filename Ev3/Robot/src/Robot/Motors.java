@@ -7,7 +7,7 @@ import lejos.robotics.RegulatedMotor;
 public class Motors {
 	public static final int BASE_SPEED = 30; // Scala 0-100
 	public static final int MAX_SPEED = 60; // Oltre i motori diventano imprecisi
-	public static final double WHEEL_DIAM = 3.6;
+	public static final double WHEEL_DIAM = 3.5;
 	public static final double INT_AXIS = 12.2;
 	public static final double EXT_AXIS = 16.2;
 	public static final double WHEELS_DISTANCE = 8.8;
@@ -126,29 +126,29 @@ public class Motors {
 
 	// Alza la pinza
 	public void bladeLift() {
-		MD.setSpeed(120);
-		MD.rotate(280);
+		MD.setSpeed(500);
+		MD.rotate(285);
 		MD.stop();
 	}
 
 	// Abbassa la pinza
 	public void bladeLower() {
-		MD.setSpeed(120);
-		MD.rotate(-280);
-		MD.stop();
+		MD.setSpeed(500);
+		MD.rotate(-285);
+		MD.flt();
 	}
 
 	// Apri il portapalline
 	public void containerOpen() {
 		MA.setSpeed(120);
-		MA.rotate(130);
+		MA.rotate(105);
 		MA.stop();
 	}
 
 	// Chiudi il portapalline
 	public void containerClose() {
 		MA.setSpeed(120);
-		MA.rotate(-130);
+		MA.rotate(-105);
 		MA.stop();
 	}
 

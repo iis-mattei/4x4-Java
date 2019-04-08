@@ -26,29 +26,33 @@ public class Test {
 //	}
 
 	public static void main(String[] args) throws InterruptedException {
-//		while (true) {
-//			sensors.checkGyro();
-//			System.out.print("X: " + sensors.getGyroX() + " ");
-//			System.out.print("Y: " + sensors.getGyroY() + " ");
-//			System.out.println("Z: " + sensors.getGyroZ());
-//			System.out.println("D: " + sensors.checkDistanceFwdLow());
-//			System.out.println("A: " + sensors.isSilver());
-//			Thread.sleep(1000);
-//		}
-//		containerOpen();
+		while (true) {
+			sensors.checkGyro();
+			System.out.print("X: " + sensors.getGyroX() + " ");
+			System.out.print("Y: " + sensors.getGyroY() + " ");
+			System.out.println("Z: " + sensors.getGyroZ());
+			System.out.println("D: " + sensors.checkDistanceFwdLow());
+			sensors.checkColors();
+			System.out.print("R: " + sensors.getLuxR());
+			System.out.print("\tC: " + sensors.getLuxC());
+			System.out.println("\tL: " + sensors.getLuxL());
+			Thread.sleep(1000);
+		}
+
+		//motors.containerOpen();
 //		System.out.println("inizio chiusura");
-//		containerClose();
-		sensors.checkGyro();
-		System.out.println("Z: " + sensors.getGyroZ());
-		motors.spin(Motors.BASE_SPEED, 180);
-		sensors.checkGyro();
-		System.out.println("Z: " + sensors.getGyroZ());
-		sensors.resetGyro();
-		sensors.checkGyro();
-		System.out.println("Z: " + sensors.getGyroZ());
-		motors.spin(Motors.BASE_SPEED, 180);
-		sensors.checkGyro();
-		System.out.println("Z: " + sensors.getGyroZ());
+		//motors.containerClose();
+//		sensors.checkGyro();
+//		System.out.println("Z: " + sensors.getGyroZ());
+//		motors.spin(Motors.BASE_SPEED, 180);
+//		sensors.checkGyro();
+//		System.out.println("Z: " + sensors.getGyroZ());
+//		sensors.resetGyro();
+//		sensors.checkGyro();
+//		System.out.println("Z: " + sensors.getGyroZ());
+//		motors.spin(Motors.BASE_SPEED, 180);
+//		sensors.checkGyro();
+//		System.out.println("Z: " + sensors.getGyroZ());
 //		motors.arc(Motors.BASE_SPEED, 30, -90);
 //		motors.travel(Motors.BASE_SPEED, 60);
 //		motors.containerOpen();
@@ -58,6 +62,13 @@ public class Test {
 //		MB.forward();
 //		MC.forward();
 //		Thread.sleep(5000);
+//		motors.bladeLift();
+//		
+//		motors.travel(500, 5);
+//		motors.containerOpen();
+//		motors.travel(500, -5);
+//		motors.travel(500, 2);
+//		motors.travel(500, -2);
 
 	}
 

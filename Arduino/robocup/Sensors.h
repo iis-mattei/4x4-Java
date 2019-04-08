@@ -29,7 +29,7 @@ class Sensors {
     static const float GREEN_MULTIPLIER;
     Adafruit_TCS34725 colorSensorL, colorSensorR, colorSensorC;
     int colorsLeft[3], colorsCenter[3], colorsRight[3];
-    int luxLeft, luxCenter, luxRight;
+    int luxLeft, luxCenter, luxRight, luxCorrection;
     int blackMax, whiteMax;
     void tcaSelect(uint8_t addr);
     char getColorID(int colors[], int lux);

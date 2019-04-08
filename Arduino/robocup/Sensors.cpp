@@ -75,6 +75,7 @@ void Sensors::debugColors() {
 }
 int Sensors::detectBlack() {
   int whiteLevel = (luxLeft + luxRight) / 2;
+  luxCorrection = luxLeft - luxRight;
   blackMax = (luxCenter + whiteLevel) / 2;
   whiteMax = whiteLevel * 2;
   return blackMax;
@@ -89,10 +90,11 @@ char Sensors::getColorRight() {
   return this->getColorID(colorsRight, luxRight);
 }
 int Sensors::getLuxCenter() {
-  return luxCenter;
+  return (luxCenter * 0.8);
 }
 int Sensors::getLuxLeft() {
-  return luxLeft;
+  return (luxLeft - luxCorrection);
+
 }
 int Sensors::getLuxRight() {
   return luxRight;
