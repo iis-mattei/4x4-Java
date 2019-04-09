@@ -7,16 +7,24 @@ import lejos.robotics.SampleProvider;
 import lejos.utility.*;
 
 public class Sensors {
-	private final int I2CSlaveAddress = 8;
+	private static final int I2C_SLAVE_ADDRESS = 8;
+	private static final int US_MAX_DISTANCE = 150;
 	private EV3UltrasonicSensor usFwdHigh;
 	private EV3UltrasonicSensor usSide;
 	private SampleProvider spFwdHigh, spSide;
 	private float[] sample;
-	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2CSlaveAddress);
+	private I2CSensor arduino = new I2CSensor(SensorPort.S4, I2C_SLAVE_ADDRESS);
 
 	private String colorsLR, colorC;
 	private int luxL, luxC, luxR, gyroX, gyroY, gyroZ;
 	private boolean touchFwdRight, touchFwdLeft, touchBackRight, touchBackLeft;
+	
+	public static void resetArduino() {
+		I2CSensor arduino = new I2CSensor(SensorPort.S4, I2C_SLAVE_ADDRESS);
+		byte[] buffReadResponse = new byte[1];
+		arduino.getData('H', buffReadResponse, buffReadResponse.length);
+		boolean retval = buffReadResponse[0] != 0;
+	}
 
 	public Sensors() {
 		boolean sensorOk = false;
@@ -81,21 +89,31 @@ public class Sensors {
 	public String getColorsLR() {
 		return colorsLR;
 	}
+	
+	public String getColorL() {
+		return ""+colorsLR.charAt(0);
+	}
+	
+	public String getColorR() {
+		return ""+colorsLR.charAt(1);
+	}
 
 	public String getColorC() {
 		return colorC;
 	}
 
 	public boolean isAnyBlack() {
-		return (colorC.equals("b") || colorsLR.charAt(0) == 'b' || colorsLR.charAt(1) == 'b');
+		return (colorC.equals("b") || getColorL().equals("b") || getColorR().equals("b"));
 	}
 
 	public boolean isAnySilver() {
-		return (colorC.equals("s") || colorsLR.charAt(0) == 's' || colorsLR.charAt(1) == 's');
+		return (colorC.equals("s") || getColorL().equals("s") || getColorR().equals("s"));
 	}
 
-	public int getDelta() {
-		return (luxL - luxR);
+	public int getDelta(int whiteMax) {
+		int luxLeftNormalized = Math.min(luxL, whiteMax);
+		int luxRightNormalized = Math.min(luxR, whiteMax);
+		return (luxLeftNormalized - luxRightNormalized);
 	}
 
 	public int getLuxL() {
@@ -137,18 +155,30 @@ public class Sensors {
 
 	public int checkDistanceFwdHigh() {
 		spFwdHigh.fetchSample(sample, 0);
-		return (int) Math.round(sample[0] * 100);
+		int dist = (int) Math.round(sample[0] * 100); 
+		if(Main.DEBUG) {
+			System.out.println("distHigh=" + dist);
+		}
+		return dist;
 	}
 
 	public int checkDistanceSide() {
 		spSide.fetchSample(sample, 0);
-		return (int) Math.round(sample[0] * 100);
+		int dist = (int) Math.round(sample[0] * 100); 
+		if(Main.DEBUG) {
+			System.out.println("distSide=" + dist);
+		}
+		return dist;
 	}
 
 	public int checkDistanceFwdLow() {
 		byte[] buffReadResponse = new byte[2];
 		arduino.getData('D', buffReadResponse, buffReadResponse.length);
 		int dist = EndianTools.decodeUShortLE(buffReadResponse, 0);
+		dist = dist == 0 ? US_MAX_DISTANCE : dist;
+		if(Main.DEBUG) {
+			System.out.println("distLow=" + dist);
+		}
 		return dist;
 	}
 

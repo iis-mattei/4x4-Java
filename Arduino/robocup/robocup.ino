@@ -14,6 +14,7 @@
 #define BACK_LEFT 9
 #define Trigger 7
 #define Echo 6
+#define RESET_CMD 5
 #define Max_Distance 150
 
 long timer = 0;
@@ -32,6 +33,7 @@ void setup() {
   pinMode(FWD_LEFT, INPUT_PULLUP);
   pinMode(BACK_RIGHT, INPUT_PULLUP);
   pinMode(BACK_LEFT, INPUT_PULLUP);
+  pinMode(RESET_CMD, OUTPUT);
 
   Serial.begin(9600);
   Wire.begin(SLAVE_ADDRESS);
@@ -80,6 +82,7 @@ void receiveData(int byteCount) {
    D = misurazione distanza con sensore a ultrasuoni
    G = dati giroscopio
    R = reset giroscopio
+   H = reset Arduino (!)
    T = tutti i 4 sensori di tocco
    Z = attiva modalità zona vittime
    L = attiva modalità seguilinea
@@ -112,6 +115,9 @@ void sendData() {
     Wire.write(highByte(gyroZ));
   } else if(request == 'R') {
     mpu6050.reset();
+    Wire.write(true);
+  } else if(request == 'H') {
+    digitalWrite(RESET_CMD, LOW);
     Wire.write(true);
   } else if (request == 'T') {
     if (digitalRead(FWD_RIGHT) == HIGH) {

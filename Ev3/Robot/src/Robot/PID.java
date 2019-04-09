@@ -39,17 +39,20 @@ public class PID {
 		}
 
 		correction = (P_COEFF * error + I_COEFF * integral + D_COEFF * derivative) / 100;
+		double corr1 = Math.min(Math.abs(correction), Motors.BASE_SPEED);
+		double corr2 = Math.abs(correction) > Motors.BASE_SPEED ? Math.abs(correction) - Motors.BASE_SPEED : 0;
+		double corrAdj = Math.signum(correction) * (corr1 + corr2 * 0.25);
 		if (correction > 0) {
-			leftSpeed = Motors.BASE_SPEED;
-			rightSpeed = Motors.BASE_SPEED - correction;
+			leftSpeed = Motors.MAX_SPEED - corrAdj;
+			rightSpeed = Motors.MAX_SPEED - 2 * corrAdj;
+			leftSpeed = Math.max(leftSpeed, Motors.BASE_SPEED);
+			rightSpeed = Math.max(rightSpeed, -Motors.BASE_SPEED);
 		} else {
-			leftSpeed = Motors.BASE_SPEED + correction;
-			rightSpeed = Motors.BASE_SPEED;
+			leftSpeed = Motors.MAX_SPEED + 2 * corrAdj;
+			rightSpeed = Motors.MAX_SPEED + corrAdj;
+			leftSpeed = Math.max(leftSpeed, -Motors.BASE_SPEED);
+			rightSpeed = Math.max(rightSpeed, Motors.BASE_SPEED);
 		}
-
-		// Impongo il rispetto delle velocità massime
-		leftSpeed = Math.abs(leftSpeed) > Motors.MAX_SPEED ? Math.signum(leftSpeed) * Motors.MAX_SPEED : leftSpeed;
-		rightSpeed = Math.abs(rightSpeed) > Motors.MAX_SPEED ? Math.signum(rightSpeed) * Motors.MAX_SPEED : rightSpeed;
 
 		speeds[0] = (int) Math.round(leftSpeed);
 		speeds[1] = (int) Math.round(rightSpeed);
@@ -59,7 +62,7 @@ public class PID {
 		}
 		lastErrors[0] = error;
 
-		if(Main.DEBUG) {
+		if (Main.DEBUG) {
 			System.out.print((new Date()).getTime());
 			System.out.print(" - Delta: " + Math.round(delta));
 			System.out.print("\tP: " + Math.round(P_COEFF * error / 100));

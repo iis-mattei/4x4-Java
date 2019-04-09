@@ -7,6 +7,7 @@ import lejos.robotics.RegulatedMotor;
 public class Test {
 	static Motors motors = new Motors();
 	static Sensors sensors = new Sensors();
+	private static PID pid = null;
 	// private static RegulatedMotor MA = Motor.A;
 	// private static RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	// private static RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
@@ -26,19 +27,34 @@ public class Test {
 //	}
 
 	public static void main(String[] args) throws InterruptedException {
-		while (true) {
-			sensors.checkGyro();
-			System.out.print("X: " + sensors.getGyroX() + " ");
-			System.out.print("Y: " + sensors.getGyroY() + " ");
-			System.out.println("Z: " + sensors.getGyroZ());
-			System.out.println("D: " + sensors.checkDistanceFwdLow());
-			sensors.checkColors();
-			System.out.print("R: " + sensors.getLuxR());
-			System.out.print("\tC: " + sensors.getLuxC());
-			System.out.println("\tL: " + sensors.getLuxL());
-			Thread.sleep(1000);
-		}
-
+		
+		int[] speeds = new int[2];
+		int position;
+		sensors.checkGyro();
+		position = sensors.getGyroZ();
+		System.out.println("pos_start: "+position);
+		pid = new PID(position, 50);
+		while(true) {
+		sensors.checkGyro();
+		speeds = pid.getSpeed(-sensors.getGyroZ());
+		System.out.println("pos: " + sensors.getGyroZ());
+		motors.drive(speeds[0], speeds[1]);
+		}	
+//		while (true) {
+////			sensors.checkGyro();
+////			System.out.print("X: " + sensors.getGyroX() + " ");
+////			System.out.print("Y: " + sensors.getGyroY() + " ");
+////			System.out.println("Z: " + sensors.getGyroZ());
+////			System.out.println("D: " + sensors.checkDistanceFwdLow());
+////			sensors.checkColors();
+////			System.out.print("R: " + sensors.getLuxR());
+////			System.out.print("\tC: " + sensors.getLuxC());
+////			System.out.println("\tL: " + sensors.getLuxL());
+////			sensors.checkDistanceFwdHigh();
+////			sensors.checkDistanceSide();
+//			Thread.sleep(1000);
+//		}
+ 
 		//motors.containerOpen();
 //		System.out.println("inizio chiusura");
 		//motors.containerClose();
@@ -47,7 +63,9 @@ public class Test {
 //		motors.spin(Motors.BASE_SPEED, 180);
 //		sensors.checkGyro();
 //		System.out.println("Z: " + sensors.getGyroZ());
+//		System.out.println("Reset Gyro");
 //		sensors.resetGyro();
+//		Thread.sleep(1000);
 //		sensors.checkGyro();
 //		System.out.println("Z: " + sensors.getGyroZ());
 //		motors.spin(Motors.BASE_SPEED, 180);

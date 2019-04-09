@@ -77,7 +77,7 @@ int Sensors::detectBlack() {
   int whiteLevel = (luxLeft + luxRight) / 2;
   luxCorrection = luxLeft - luxRight;
   blackMax = (luxCenter + whiteLevel) / 2;
-  whiteMax = whiteLevel * 2;
+  whiteMax = whiteLevel * 1.25;
   return blackMax;
 }
 char Sensors::getColorCenter() {
