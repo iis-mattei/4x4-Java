@@ -83,5 +83,5 @@ class SoftwareWire {
 };
 
 extern SoftwareWire Wire1; // aggiunto per compatibiità con MUX che vuole un oggetto istanziato
-extern SoftwareWire Wire2; // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato
+//extern SoftwareWire Wire2; // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato
 #endif // SoftwareWire_h

@@ -27,33 +27,42 @@ public class Test {
 //	}
 
 	public static void main(String[] args) throws InterruptedException {
-		
-		int[] speeds = new int[2];
-		int position;
-		sensors.checkGyro();
-		position = sensors.getGyroZ();
-		System.out.println("pos_start: "+position);
-		pid = new PID(position, 50);
 		while(true) {
-		sensors.checkGyro();
-		speeds = pid.getSpeed(-sensors.getGyroZ());
-		System.out.println("pos: " + sensors.getGyroZ());
-		motors.drive(speeds[0], speeds[1]);
-		}	
-//		while (true) {
-////			sensors.checkGyro();
-////			System.out.print("X: " + sensors.getGyroX() + " ");
-////			System.out.print("Y: " + sensors.getGyroY() + " ");
-////			System.out.println("Z: " + sensors.getGyroZ());
-////			System.out.println("D: " + sensors.checkDistanceFwdLow());
-////			sensors.checkColors();
-////			System.out.print("R: " + sensors.getLuxR());
-////			System.out.print("\tC: " + sensors.getLuxC());
-////			System.out.println("\tL: " + sensors.getLuxL());
-////			sensors.checkDistanceFwdHigh();
-////			sensors.checkDistanceSide();
+			sensors.checkTouches();
+			System.out.println("AntDX: " + sensors.isFwdRightPressed());
+			System.out.println("AntSX: " + sensors.isFwdLeftPressed());
+
+			System.out.println("PostDX: " + sensors.isBackRightPressed());
+			System.out.println("PostSX: " + sensors.isBackLeftPressed());
+			Thread.sleep(5000);
+		}
+		
+//		int[] speeds = new int[2];
+//		int position;
+//		sensors.checkGyro();
+//		position = sensors.getGyroZ();
+//		System.out.println("pos_start: "+position);
+//		pid = new PID(position, 50);
+//		while(true) {
+//		sensors.checkGyro();
+//		speeds = pid.getSpeed(-sensors.getGyroZ());
+//		System.out.println("pos: " + sensors.getGyroZ());
+//		motors.drive(speeds[0], speeds[1]);
+//		}	
+		//while (true) {
+//			sensors.checkGyro();
+//			System.out.print("X: " + sensors.getGyroX() + " ");
+//			System.out.print("Y: " + sensors.getGyroY() + " ");
+//			System.out.println("Z: " + sensors.getGyroZ());
+//			System.out.println("D: " + sensors.checkDistanceFwdLow());
+//			sensors.checkColors();
+//			System.out.print("R: " + sensors.getLuxR());
+//			System.out.print("\tC: " + sensors.getLuxC());
+//			System.out.println("\tL: " + sensors.getLuxL());
+//			sensors.checkDistanceFwdHigh();
+//			sensors.checkDistanceSide();
 //			Thread.sleep(1000);
-//		}
+		//}
  
 		//motors.containerOpen();
 //		System.out.println("inizio chiusura");

@@ -63,8 +63,7 @@ public class PID {
 		lastErrors[0] = error;
 
 		if (Main.DEBUG) {
-			System.out.print((new Date()).getTime());
-			System.out.print(" - Delta: " + Math.round(delta));
+			System.out.print("Delta: " + Math.round(delta));
 			System.out.print("\tP: " + Math.round(P_COEFF * error / 100));
 			System.out.print("\tI: " + Math.round(I_COEFF * integral / 100));
 			System.out.print("\tD: " + Math.round(D_COEFF * derivative / 100));

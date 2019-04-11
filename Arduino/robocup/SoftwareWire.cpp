@@ -889,4 +889,4 @@ uint8_t SoftwareWire::i2c_read(boolean ack)
 // Preinstantiate Objects //////////////////////////////////////////////////////
 
 SoftwareWire Wire1 = SoftwareWire(A2, A3); // aggiunto per compatibiità con MUX che vuole un oggetto istanziato
-SoftwareWire Wire2 = SoftwareWire(A0, A1); // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato
+//SoftwareWire Wire2 = SoftwareWire(A0, A1); // aggiunto per compatibiità con MPU6050 che vuole un oggetto istanziato
