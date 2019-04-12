@@ -157,8 +157,10 @@ public class Motors {
 	}
 
 	public void stop() {
+		MB.startSynchronization();  // Modifica 12-4-19
 		MB.stop();
 		MC.stop();
+		MB.endSynchronization();  // Modifica 12-4-19
 	}
 
 	public int getTachoCount() {

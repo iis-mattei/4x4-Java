@@ -18,7 +18,8 @@ public class Main {
 	private static int deltaMax = 0;
 	private static int whiteMax = 0;
 	private static long startTime = 0;
-	private static boolean loaded = false, reset = false;
+//	private static boolean loaded = false;
+	private static boolean reset = false;
 
 	public static void main(String args[]) throws InterruptedException {
 //		try {
@@ -251,7 +252,7 @@ public class Main {
 		// safePosition: 0 è l'angolo in basso a sinistra, gli altri in senso orario
 		// gatePosition: da 0 a 3, da sinistra a destra
 		int zoneOrientation = -1, safePosition = -1, gatePosition = -1;
-		loaded = false;
+//		loaded = false;
 
 		System.out.println("* Zona Vittime *");
 		motors.stop();
@@ -274,6 +275,7 @@ public class Main {
 //		}
 
 		// Avanza per far entrare tutto il robot nella zona
+		motors.bladeLower(); // Modifica 12-4-19
 		motors.travel(Motors.MAX_SPEED, 30);
 		motors.stop();
 
@@ -338,8 +340,14 @@ public class Main {
 		}
 		do {
 			System.out.println("Side #" + sidesExplored);
+			boolean bladeLow = true;	 // Modifica 12-4-19
+			motors.bladeLower();	 // Modifica 12-4-19
 			// Va avanti finché non trova la parete
 			while (sensors.checkDistanceFwdHigh() > 25) {
+				if(bladeLow && sensors.checkDistanceFwdHigh() < 50) {	 // Modifica 12-4-19
+					motors.bladeLift();	 // Modifica 12-4-19
+					bladeLow = false;	 // Modifica 12-4-19
+				}	 // Modifica 12-4-19
 				if (reset) {
 					return;
 				}
@@ -383,6 +391,7 @@ public class Main {
 		motors.travel(Motors.MAX_SPEED, -5);
 		motors.spin(Motors.BASE_SPEED, 180);
 		alignBackwards();
+		unloadVictims(); // Modifica 12-4-19
 		if (reset) {
 			return;
 		}
@@ -414,7 +423,7 @@ public class Main {
 			// Recupera eventuali palline
 			motors.bladeLift();
 			// Flag per uscire quando è troppo vicino al bordo della zona vittime
-			if(sensors.checkDistanceFwdHigh() < 40) {
+			if(sensors.checkDistanceFwdHigh() < 50) {	 // Modifica 12-4-19, era 40
 				System.out.println("Ultima spazzata");
 				lastRun = true;
 			}
