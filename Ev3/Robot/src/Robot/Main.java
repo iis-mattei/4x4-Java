@@ -30,7 +30,7 @@ public class Main {
 			@Override
 			public void keyPressed(Key k) {
 				System.out.println("Fine!");
-				motors.stop();
+				//motors.stop();
 				System.exit(0);
 			}
 

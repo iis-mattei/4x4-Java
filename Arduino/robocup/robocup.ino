@@ -45,9 +45,9 @@ void setup() {
   Serial.println("Ready!");
 
   // Per il test dei sensori di colore
-  // sensors->readAllColors();
-  // int blackLevel = sensors->detectBlack();
-  // Serial.println(blackLevel);
+//   sensors->readAllColors();
+//   int blackLevel = sensors->detectBlack();
+//   Serial.println(blackLevel);
 
   // Inizializzazione giroscopio
   // Wire2.begin();
@@ -58,7 +58,7 @@ void setup() {
 void loop() {
   if (rescueLineMode) {
     sensors->readAllColors();
-    // sensors->debugColors();
+     //sensors->debugColors();
   } else {
     distHigh = usHigh.convert_cm(usHigh.ping_median(10, MAX_DISTANCE));
   }
