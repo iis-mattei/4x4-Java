@@ -23,13 +23,13 @@ public class Motors {
 	private RegulatedMotor MA = Motor.A;
 //	private RegulatedMotor MB = Motor.B;
 //	private RegulatedMotor MC = Motor.C;
-	private RegulatedMotor MD = Motor.D;
+//	private RegulatedMotor MD = Motor.D;
 
 	// Da attivare se i motori sono al contrario rispetto al senso di marcia
 // 	private RegulatedMotor MA = MirrorMotor.invertMotor(Motor.A);
 	private RegulatedMotor MB = MirrorMotor.invertMotor(Motor.B);
 	private RegulatedMotor MC = MirrorMotor.invertMotor(Motor.C);
-//	private RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
+	private RegulatedMotor MD = MirrorMotor.invertMotor(Motor.D);
 
 	public Motors() {
 		MB.synchronizeWith(new RegulatedMotor[] { Motor.C });
@@ -124,31 +124,72 @@ public class Motors {
 		arc(speed, radius, arc, false);
 	}
 
-	// Alza la pinza
+	// Imposta la posizione zero della pala
+	public void bladeSetZero() {
+		MD.resetTachoCount();
+	}
+
+	// Verifica se la pala è in alto o in basso
+	public boolean isBladeLow() {
+		if (MD.getTachoCount() > 100) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	// Alza la pala
 	public void bladeLift() {
 		MD.setSpeed(500);
-		MD.rotate(285);
+		MD.rotateTo(50);
+		MD.rotateTo(0);
+		if(Main.DEBUG) {
+			System.out.println("Blade position: " + MD.getTachoCount());
+		}
 		MD.stop();
 	}
 
-	// Abbassa la pinza
+	// Abbassa la pala
 	public void bladeLower() {
 		MD.setSpeed(500);
-		MD.rotate(-285);
+		MD.rotateTo(290);
+		if(Main.DEBUG) {
+			System.out.println("Blade position: " + MD.getTachoCount());
+		}
 		MD.flt();
+	}
+
+	// Imposta la posizione zero del portapalline
+	public void containerSetZero() {
+		MA.resetTachoCount();
+	}
+
+	// Verifica se il portapalline è in alto o in basso
+	public boolean isContainerOpen() {
+		if (MA.getTachoCount() > 50) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	// Apri il portapalline
 	public void containerOpen() {
 		MA.setSpeed(120);
-		MA.rotate(105);
+		MA.rotateTo(105);
+		if(Main.DEBUG) {
+			System.out.println("Container position: " + MA.getTachoCount());
+		}
 		MA.stop();
 	}
 
 	// Chiudi il portapalline
 	public void containerClose() {
 		MA.setSpeed(120);
-		MA.rotate(-105);
+		MA.rotateTo(0);
+		if(Main.DEBUG) {
+			System.out.println("Container position: " + MA.getTachoCount());
+		}
 		MA.stop();
 	}
 
@@ -157,10 +198,12 @@ public class Motors {
 	}
 
 	public void stop() {
-		MB.startSynchronization();  // Modifica 12-4-19
+		MB.startSynchronization(); // Modifica 12-4-19
 		MB.stop();
 		MC.stop();
-		MB.endSynchronization();  // Modifica 12-4-19
+		MC.rotate(-5);
+		MC.stop();
+		MB.endSynchronization(); // Modifica 12-4-19
 	}
 
 	public int getTachoCount() {

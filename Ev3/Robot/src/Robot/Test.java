@@ -27,16 +27,18 @@ public class Test {
 //	}
 
 	public static void main(String[] args) throws InterruptedException {
-		while(true) {
-			sensors.checkTouches();
-			System.out.println("AntDX: " + sensors.isFwdRightPressed());
-			System.out.println("AntSX: " + sensors.isFwdLeftPressed());
-
-			System.out.println("PostDX: " + sensors.isBackRightPressed());
-			System.out.println("PostSX: " + sensors.isBackLeftPressed());
-			Thread.sleep(5000);
-		}
-		
+//		while(true) {
+//			sensors.checkTouches();
+//			System.out.println("AntDX: " + sensors.isFwdRightPressed());
+//			System.out.println("AntSX: " + sensors.isFwdLeftPressed());
+//
+//			System.out.println("PostDX: " + sensors.isBackRightPressed());
+//			System.out.println("PostSX: " + sensors.isBackLeftPressed());
+//			Thread.sleep(5000);
+//		}
+//		motors.drive(50, 50);
+//		Thread.sleep(5000);
+//		motors.stop();
 //		int[] speeds = new int[2];
 //		int position;
 //		sensors.checkGyro();
@@ -63,10 +65,16 @@ public class Test {
 //			sensors.checkDistanceSide();
 //			Thread.sleep(1000);
 		//}
- 
-		//motors.containerOpen();
-//		System.out.println("inizio chiusura");
-		//motors.containerClose();
+//		motors.containerSetZero();
+//		motors.containerOpen();
+//		motors.containerClose();
+//		for (int i = 0; i < 10; i++) {
+//			motors.bladeSetZero();
+//			motors.bladeLower();
+//			Thread.sleep(1000);
+//			motors.bladeLift();
+//		}
+		
 //		sensors.checkGyro();
 //		System.out.println("Z: " + sensors.getGyroZ());
 //		motors.spin(Motors.BASE_SPEED, 180);
