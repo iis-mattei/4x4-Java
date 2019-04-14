@@ -216,7 +216,7 @@ public class Main {
 					// Curva a sinistra
 					System.out.println("Curva a sinistra");
 					motors.stop();
-					motors.spin(Motors.BASE_SPEED, 30);
+					motors.spin(Motors.BASE_SPEED, 25);
 					do {
 						sensors.checkColors();
 						motors.drive(-Motors.BASE_SPEED, Motors.BASE_SPEED);
@@ -227,7 +227,7 @@ public class Main {
 					// Curva a destra
 					System.out.println("Curva a destra");
 					motors.stop();
-					motors.spin(Motors.BASE_SPEED, -30);
+					motors.spin(Motors.BASE_SPEED, -25);
 					do {
 						sensors.checkColors();
 						motors.drive(Motors.BASE_SPEED, -Motors.BASE_SPEED);
